@@ -12,7 +12,7 @@ contract SquidChain {
     }
 
     struct GameRoom {
-        uint8 gameId;
+        string gameId;
         bool gameStarted;
         bool gameEnded;
         uint8 currentRound;
@@ -20,10 +20,10 @@ contract SquidChain {
 
     uint8 public gameCount;
     mapping(address => GameRoom[]) public gamesByUser;
-    mapping(uint8 => GameRoom) public gameRooms;
+    mapping(string => GameRoom) public gameRooms;
     mapping(uint8 => Agent) public agents;
-    mapping(uint8 => mapping(uint8 => bool)) public eliminatedInGame; // Tracks eliminated agents per game
-    mapping(uint8 => Agent[]) public agentsByGame;
+    mapping(string => mapping(uint8 => bool)) public eliminatedInGame; 
+    mapping(string => Agent[]) public agentsByGame;
 
     constructor() {
         string[] memory traits1 = new string[](2);
@@ -46,10 +46,11 @@ contract SquidChain {
         agents[agentId] = Agent(agentId, name, description, image, traits, false);
     }
 
-    function createGameRoom(uint8[] memory agentIds) public {
+
+    function createGameRoom(uint8[] memory agentIds, string memory uuid) public {
         gameCount++;
-        GameRoom storage gameRoom = gameRooms[gameCount];
-        gameRoom.gameId = gameCount;
+        GameRoom storage gameRoom = gameRooms[uuid];
+        gameRoom.gameId = uuid;
         gameRoom.gameStarted = false;
         gameRoom.gameEnded = false;
         gameRoom.currentRound = 0;
@@ -65,7 +66,7 @@ contract SquidChain {
         gamesByUser[msg.sender].push(gameRoom);
     }
 
-    function eliminatePlayer(uint8 eliminateAgentId, uint8 gameId) public {
+    function eliminatePlayer(uint8 eliminateAgentId, string memory gameId) public {
         require(agents[eliminateAgentId].agentId != 0, "Agent does not exist");
         require(!eliminatedInGame[gameId][eliminateAgentId], "Agent is already eliminated in this game");
 
@@ -79,7 +80,7 @@ contract SquidChain {
         }
     }
 
-    function getActivePlayers(uint8 gameId) public view returns (Agent[] memory) {
+    function getActivePlayers(string memory gameId) public view returns (Agent[] memory) {
         Agent[] storage gameAgents = agentsByGame[gameId];
         uint activeCount = 0;
 
@@ -102,11 +103,11 @@ contract SquidChain {
         return activeAgents;
     }
 
-    function getAllAgentsByGameId(uint8 gameId) public view returns (Agent[] memory) {
+    function getAllAgentsByGameId(string memory gameId) public view returns (Agent[] memory) {
         return agentsByGame[gameId];
     }
 
-    function getGameRoomById(uint8 gameId) public view returns (GameRoom memory) {
+    function getGameRoomById(string memory gameId) public view returns (GameRoom memory) {
         return gameRooms[gameId];
     }
 

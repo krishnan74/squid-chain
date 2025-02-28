@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import { v4 as uuidv4 } from "uuid";
 import { expect } from "chai";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
@@ -14,12 +15,9 @@ describe("SquidChain", function () {
   describe("Game Room Management", function () {
     it("should create a new game room", async function () {
       const { squidChain } = await loadFixture(deploySquidChainFixture);
-
+      const gameId = uuidv4();
       const playerIds = [1, 2, 3];
-      await squidChain.createGameRoom(playerIds);
-
-      const gameId = await squidChain.getGameCount();
-      console.log("Game Id:", gameId);
+      await squidChain.createGameRoom(playerIds, gameId);
 
       const gameRoom = await squidChain.gameRooms(gameId);
       console.log("Game Room:", gameRoom);
@@ -30,7 +28,7 @@ describe("SquidChain", function () {
     it("should return the correct game count", async function () {
       const { squidChain } = await loadFixture(deploySquidChainFixture);
 
-      await squidChain.createGameRoom([1]);
+      await squidChain.createGameRoom([1], uuidv4());
 
       const gameCount = await squidChain.getGameCount();
       expect(gameCount).to.equal(1);
@@ -57,8 +55,8 @@ describe("SquidChain", function () {
     it("should eliminate a player from the game", async function () {
       const { squidChain } = await loadFixture(deploySquidChainFixture);
 
-      await squidChain.createGameRoom([1, 2]);
-      const gameId = await squidChain.getGameCount();
+      const gameId = uuidv4();
+      await squidChain.createGameRoom([1, 2], gameId);
 
       await squidChain.eliminatePlayer(1, gameId);
 
@@ -73,8 +71,8 @@ describe("SquidChain", function () {
     it("should return only active players", async function () {
       const { squidChain } = await loadFixture(deploySquidChainFixture);
 
-      await squidChain.createGameRoom([1, 2, 3]);
-      const gameId = await squidChain.getGameCount();
+      const gameId = uuidv4();
+      await squidChain.createGameRoom([1, 2, 3], gameId);
 
       await squidChain.eliminatePlayer(1, gameId);
 
@@ -91,11 +89,14 @@ describe("SquidChain", function () {
     it("should return the game rooms created by a user", async function () {
       const { squidChain, user } = await loadFixture(deploySquidChainFixture);
 
-      await squidChain.createGameRoom([1, 2]);
+      const game1Id = uuidv4();
+      await squidChain.createGameRoom([1, 2], game1Id);
 
-      await squidChain.eliminatePlayer(1, 1);
+      await squidChain.eliminatePlayer(1, game1Id);
 
-      await squidChain.createGameRoom([1, 2]);
+      const game2Id = uuidv4();
+
+      await squidChain.createGameRoom([1, 2], game2Id);
 
       const userAddress = await user.getAddress();
 
@@ -112,10 +113,10 @@ describe("SquidChain", function () {
         // console.log(agents);
       });
 
-      const agents = await squidChain.getActivePlayers(1);
+      const agents = await squidChain.getActivePlayers(game1Id);
       console.log("Active agents in 1 :", agents);
 
-      const agents2 = await squidChain.getActivePlayers(2);
+      const agents2 = await squidChain.getActivePlayers(game2Id);
       console.log("Active agents in 2 :", agents2);
     });
   });
