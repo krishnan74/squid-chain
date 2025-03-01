@@ -1,5 +1,5 @@
 export const wagmiContractConfig = {
-  address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  address: "0x3659f991727f8fD58D167D39390F4208b9387f3A",
   abi: [
     {
       inputs: [],
@@ -276,7 +276,7 @@ export const wagmiContractConfig = {
           type: "string",
         },
       ],
-      name: "getActivePlayers",
+      name: "getActiveAgents",
       outputs: [
         {
           components: [
@@ -328,6 +328,57 @@ export const wagmiContractConfig = {
         },
       ],
       name: "getAllAgentsByGameId",
+      outputs: [
+        {
+          components: [
+            {
+              internalType: "uint8",
+              name: "agentId",
+              type: "uint8",
+            },
+            {
+              internalType: "string",
+              name: "name",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "description",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "image",
+              type: "string",
+            },
+            {
+              internalType: "string[]",
+              name: "traits",
+              type: "string[]",
+            },
+            {
+              internalType: "bool",
+              name: "eliminated",
+              type: "bool",
+            },
+          ],
+          internalType: "struct SquidChain.Agent[]",
+          name: "",
+          type: "tuple[]",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "string",
+          name: "gameId",
+          type: "string",
+        },
+      ],
+      name: "getEliminatedAgents",
       outputs: [
         {
           components: [
