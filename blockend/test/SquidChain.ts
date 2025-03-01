@@ -60,14 +60,14 @@ describe("SquidChain", function () {
 
       await squidChain.eliminatePlayer(1, gameId);
 
-      const activePlayers = await squidChain.getActivePlayers(gameId);
+      const activeAgents = await squidChain.getActiveAgents(gameId);
 
-      expect(activePlayers.length).to.equal(1);
-      expect(activePlayers[0].agentId).to.equal(2);
+      expect(activeAgents.length).to.equal(1);
+      expect(activeAgents[0].agentId).to.equal(2);
     });
   });
 
-  describe("Active Players", function () {
+  describe("Active Agents", function () {
     it("should return only active players", async function () {
       const { squidChain } = await loadFixture(deploySquidChainFixture);
 
@@ -76,12 +76,30 @@ describe("SquidChain", function () {
 
       await squidChain.eliminatePlayer(1, gameId);
 
-      const activePlayers = await squidChain.getActivePlayers(gameId);
-      console.log("Active Players:", activePlayers);
+      const activeAgents = await squidChain.getActiveAgents(gameId);
+      console.log("Active Agents:", activeAgents);
 
-      expect(activePlayers.length).to.equal(2);
-      expect(activePlayers[0].agentId).to.equal(2);
-      expect(activePlayers[1].agentId).to.equal(3);
+      expect(activeAgents.length).to.equal(2);
+      expect(activeAgents[0].agentId).to.equal(2);
+      expect(activeAgents[1].agentId).to.equal(3);
+    });
+  });
+
+  describe("Eliminated Agents", function () {
+    it("should return only eliminated players", async function () {
+      const { squidChain } = await loadFixture(deploySquidChainFixture);
+
+      const gameId = uuidv4();
+      await squidChain.createGameRoom([1, 2, 3], gameId);
+      await squidChain.eliminatePlayer(1, gameId);
+      await squidChain.eliminatePlayer(2, gameId);
+
+      const eliminatedAgents = await squidChain.getEliminatedAgents(gameId);
+      console.log("Eliminated Agents:", eliminatedAgents);
+
+      expect(eliminatedAgents.length).to.equal(2);
+      expect(eliminatedAgents[0].agentId).to.equal(1);
+      expect(eliminatedAgents[1].agentId).to.equal(2);
     });
   });
 
@@ -106,17 +124,17 @@ describe("SquidChain", function () {
         console.log("Game ID: ", gameRoom.gameId.toString());
         // console.log("Agents");
 
-        // const agents = await squidChain.getActivePlayers(
+        // const agents = await squidChain.getActiveAgents(
         //   Number(gameRoom.gameId.toString())
         // );
 
         // console.log(agents);
       });
 
-      const agents = await squidChain.getActivePlayers(game1Id);
+      const agents = await squidChain.getActiveAgents(game1Id);
       console.log("Active agents in 1 :", agents);
 
-      const agents2 = await squidChain.getActivePlayers(game2Id);
+      const agents2 = await squidChain.getActiveAgents(game2Id);
       console.log("Active agents in 2 :", agents2);
     });
   });
