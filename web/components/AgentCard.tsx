@@ -16,6 +16,7 @@ const AgentCard: React.FC<AgentCardProps> = ({
   traits,
   fromGame,
   onDragStart,
+  status,
 }) => {
   const [borderColor, setBorderColor] = React.useState<string>("#06BA99");
 
@@ -26,7 +27,11 @@ const AgentCard: React.FC<AgentCardProps> = ({
     traits === undefined
   )
     return (
-      <div className="  w-full  flex flex-col justify-between border p-5 bg-[#FCF5E8]">
+      <div
+        className={`w-full  flex flex-col justify-between border p-5 bg-[#FCF5E8] ${
+          fromGame ? " rounded-tr-lg" : ""
+        }`}
+      >
         {fromGame && (
           <p className="text-black text-xl mb-4">No Agents Selected</p>
         )}
@@ -58,7 +63,7 @@ const AgentCard: React.FC<AgentCardProps> = ({
       }}
       className={`flex flex-col flex-shrink-0 ${
         fromGame
-          ? " w-full bg-[#FCF5E8] text-[#F50276] rounded-none "
+          ? " w-full bg-[#FCF5E8] text-[#F50276] rounded-tr-lg "
           : "w-[250px] bg-[#131313] border border-[#F50276] hover:bg-[#FCF5E8] hover:text-[#F50276] rounded-lg"
       } h-full justify-between items-start transition-all duration-300 p-5    `}
       draggable={true}
@@ -66,7 +71,15 @@ const AgentCard: React.FC<AgentCardProps> = ({
         onDragStart && onDragStart(e, { name, description, image })
       }
     >
-      {fromGame && <p className="text-black text-xl ">Selected Agent</p>}
+      {status != undefined ? (
+        status === "active" ? (
+          <p className="text-black text-xl ">Active Agent</p>
+        ) : (
+          <p className="text-black text-xl ">Eliminated Agent</p>
+        )
+      ) : (
+        fromGame && <p className="text-black text-xl ">Selected Agent</p>
+      )}
 
       <div className="flex justify-center w-full">
         <Image

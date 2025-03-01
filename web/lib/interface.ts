@@ -5,6 +5,7 @@ export interface AgentCardProps {
   image: string | undefined;
   traits: readonly string[] | undefined;
   fromGame?: boolean | undefined;
+  status?: string;
   onClicked?: () => void;
   onDragStart?: (
     e: React.DragEvent<HTMLDivElement>,
@@ -17,6 +18,8 @@ export interface GameCardProps {
   gameStarted: boolean | undefined;
   gameEnded: boolean | undefined;
   currentRound: number | undefined;
+  eliminatedAgents: readonly AgentCardProps[] | undefined;
+  activeAgents: readonly AgentCardProps[] | undefined;
 }
 
 export enum SenderType {

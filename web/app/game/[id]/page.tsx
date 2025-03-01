@@ -8,6 +8,9 @@ import { GameAgentCard } from "@/components/GameAgentCard";
 import { AgentCardProps, SenderType } from "@/lib/interface";
 import GameCard from "@/components/GameCard";
 import ChatInterface from "@/components/ChatInterface";
+import { usePathname } from "next/navigation";
+import { wagmiContractConfig } from "@/lib/contract";
+import { useReadContract } from "wagmi";
 
 const museo = MuseoModerno({
   subsets: ["latin"],
@@ -15,6 +18,8 @@ const museo = MuseoModerno({
 });
 
 const GamePage = () => {
+  const pathname = usePathname();
+  const gameId = pathname.split("/")[2];
   const [temp, setTemp] = useState<number>(0);
   const [selectedAgent, setSelectedAgent] = useState<
     AgentCardProps | undefined
@@ -27,12 +32,23 @@ const GamePage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const gameRoom = {
-    gameId: 1,
-    gameStarted: true,
-    gameEnded: false,
-    currentRound: 1,
-  };
+  const { data: activeAgents } = useReadContract({
+    ...wagmiContractConfig,
+    functionName: "getActiveAgents",
+    args: [gameId || ""],
+  });
+
+  const { data: gameRoom } = useReadContract({
+    ...wagmiContractConfig,
+    functionName: "getGameRoomById",
+    args: [gameId || ""],
+  });
+
+  const { data: eliminatedAgents } = useReadContract({
+    ...wagmiContractConfig,
+    functionName: "getEliminatedAgents",
+    args: [gameId || ""],
+  });
 
   const messages = [
     {
@@ -76,16 +92,18 @@ const GamePage = () => {
   return (
     <div className="flex items-center justify-center h-screen bg-black text-white relative p-10">
       {/* Moderator in the center */}
-      <div className=" w-[20%]  h-full flex flex-col">
-        <div className="bg-[#131313] h-[30%] border">
+      <div className=" w-[20%]  h-full flex flex-col rounded-l-lg">
+        <div className=" h-[30%] rounded-tl-lg ">
           <GameCard
-            gameId={gameRoom.gameId}
-            gameStarted={gameRoom.gameStarted}
-            gameEnded={gameRoom.gameEnded}
-            currentRound={gameRoom.currentRound}
+            gameId={gameRoom?.gameId}
+            gameStarted={gameRoom?.gameStarted}
+            gameEnded={gameRoom?.gameEnded}
+            currentRound={gameRoom?.currentRound}
+            activeAgents={activeAgents}
+            eliminatedAgents={eliminatedAgents}
           />
         </div>
-        <div className="bg-[#131313] h-[70%] border ">
+        <div className="bg-[#131313] h-[70%] border rounded-bl-lg">
           <ChatInterface messages={messages} />
         </div>
       </div>
@@ -96,8 +114,8 @@ const GamePage = () => {
         </div>
         {/* Agent Cards in a circle */}
         <div className="relative top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all duration-300">
-          {agentData.map((agent, index) => {
-            const angle = (index / agentData.length) * (2 * Math.PI);
+          {activeAgents?.map((agent, index) => {
+            const angle = (index / activeAgents.length) * (2 * Math.PI);
             const x = 200 * Math.cos(angle + temp);
 
             const y = 200 * Math.sin(angle + temp);
@@ -107,12 +125,12 @@ const GamePage = () => {
             // );
             return (
               <div
-                key={agent.id}
+                key={agent.agentId}
                 className="absolute "
                 style={{ transform: `translate(${x + 15}px, ${y}px)` }}
               >
                 <GameAgentCard
-                  id={agent.id}
+                  agentId={agent.agentId}
                   image={agent.image}
                   name={agent.name}
                   description={agent.description}
@@ -126,10 +144,10 @@ const GamePage = () => {
         </div>
       </div>
 
-      <div className=" w-[20%]  h-full flex flex-col">
-        <div className="bg-[#131313] h-fit flex-grow-0">
+      <div className=" w-[20%]  h-full flex flex-col rounded-r-lg">
+        <div className="bg-[#131313] h-fit flex-grow-0  rounded-tr-lg">
           <AgentCard
-            id={selectedAgent?.id}
+            agentId={selectedAgent?.agentId}
             name={selectedAgent?.name}
             description={selectedAgent?.description}
             image={selectedAgent?.image}
