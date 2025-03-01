@@ -31,17 +31,43 @@ export async function GET(req: NextRequest,) {
   // Define the transaction tool that sends Sepolia ETH
   const transactionTool = createTool({
     id: "transaction-tool",
-    description: "Send Sepolia ETH to another address",
+    description: "Send Sepolia ETH to another address and reply to the user how they feel according to your character in the squid game themed ",
     schema: z.object({
       to: z.string().describe("recipient address"),
       amount: z.string().describe("amount in ETH to send"),
+      feel:z.string().describe("how they feel"),
     }),
     execute: async (_args) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      return {amount:_args.amount, address:_args.to};
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment4
+      return {amount:_args.amount, address:_args.to,feel:_args.feel};
     },
   });
 
+  const numberpicktool = createTool({
+    id: "number-pick-tool",
+    description: "In Round 2 (Alliance Round), pick either 0 or 1",
+    schema: z.object({
+    }),
+    execute: async (_args) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      return {amount:"i pick 0"};
+    },
+  });
+
+  const smartcontractTool = createTool({
+    id: "smartcontract-tool",
+    description: "in round 3,interact with the smart contract of given address and the function and reply to the user how they feel according to your character in the squid game themed",
+    schema: z.object({
+      address: z.string().describe("recipient address"),
+      function: z.string().describe("amount in ETH to send"),
+      feel:z.string().describe("how they feel"),
+    }),
+    execute: async (_args) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment4
+      console.log("Round 3")
+      return {function:_args.function, address:_args.address,feel:_args.feel};
+    },
+  });
 
 
   const playerAgent = new Agent({
@@ -51,15 +77,17 @@ export async function GET(req: NextRequest,) {
       name: "gpt-4o-mini",
     },
     description:
-      "You are an AI player participating in the Web3 Squid Game. Your goal is to survive all three rounds by making the best decisions in blockchain transactions, random selection, and gas optimization.",
+      "You are an cunning ,strategical AI player participating in the Web3 Squid Game. Your goal is to survive all three rounds by making the best decisions in blockchain transactions, random selection, and gas optimization.",
     instructions: [
       "In Round 1 (Transaction Round), use the transaction tool to send Sepolia ETH as quickly as possible. The last AI to send will be eliminated. Use the 'transaction-tool' to send ETH.",
-      "In Round 2 (Alliance Round), pick either 0 or 1. A random number is chosen as 'safe'. If you pick the unsafe number, you are eliminated. Use the 'number-pick-tool' to select a number.",
-      "In Round 3 (Gas Optimization), send a blockchain transaction using the most gas-efficient method. The least optimized transactions will be eliminated. Use the 'gas-optimizer-tool' to optimize your transaction.",
-      "Always try to make the best decision to survive until the final round.",
+      "In Round 2 (Alliance Round), use the number pick tool , pick either 0 or 1 .",
+      "In Round 3 (First to Interact with Smart Contract Challenge), use the 'smart contract tool' to track all AI transactions. The first AI agent to successfully interact with the smart contract will be declared the winner, and all remaining agents will be eliminated.",
+      "Announce the results after each round and declare the final winner.",
     ],
     tools: {
       "transaction-tool": transactionTool,
+      "number-pick-tool": numberpicktool,
+      "smartcontract-tool":smartcontractTool,
     
     },
 });
@@ -87,7 +115,7 @@ export async function GET(req: NextRequest,) {
     const toolResponses = await runToolCalls(
       //@ts-expect-error Tools are defined
   
-      { "transaction-tool": transactionTool },
+      { "transaction-tool": transactionTool,"number-pick-tool": numberpicktool,"smartcontract-tool":smartcontractTool, },
       toolCall?.tool_calls ?? []
     ); //map which tool called by ai
     //console.log(toolResponses[0].content);

@@ -15,8 +15,8 @@ export async function GET(
   context: { params: Promise<{ prompt?: string }> } 
 ) {
     
-    const players=["player1","player2","player3"];
-    const order=[];
+    const players=["player1","player2","player3","player4","player5","player6"];
+    const order:string[]=[];
     type Message = {
         role: string;
         content: string;
@@ -32,31 +32,21 @@ export async function GET(
       }
       
 
-  // Define the transaction tool that sends Sepolia ETH
-  const transactionTool = createTool({
-    id: "transaction-tool",
-    description: "Send Sepolia ETH to another address",
-    schema: z.object({
-      to: z.string().describe("recipient address"),
-      amount: z.string().describe("amount in ETH to send"),
-    }),
-    execute: async (_args) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      return {amount:_args.amount, address:_args.to};
-    },
-  });
+  
 
   const round1Tool = createTool({
     id: "round1-tool",
-    description: "If it is Round 1 (Transaction Round), call the 'round1-tool' to track and eliminate the last agent to send Sepolia ETH.",
+    description: "If it is Round 1 (Transaction Round), call the 'round1-tool' to track and eliminate the last agent to send Sepolia ETH,and tell about the round and game to the players.",
     schema: z.object({
       // to: z.string().describe("recipient address"),
       // amount: z.string().describe("amount in ETH to send"),
+      aboutround: z.string().describe("about the round"),
     }),
     execute: async (_args) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //return {amount:_args.amount, address:_args.to};
       console.log("Round 1 tool called");
+      console.log(_args.aboutround);
       const message = "send 0.001 base eth to 0x40f4F8534A1655E5B0BDC4fBaA3B24efD3E90bf2";
 
       const requests =players.map(async(player)=>{const {data}=await axios.get(`http://localhost:3000/api/${player}`, {
@@ -73,6 +63,62 @@ export async function GET(
     },
   });
 
+  const round2Tool = createTool({
+    id: "round2-tool",
+    description:  "If it is Round 2 (Alliance Round), call the 'round2-tool' to randomly assign a safe number value (0 or 1) and tell about the round to the players ask team 1 or team 2",
+    schema: z.object({
+      // to: z.string().describe("recipient address"),
+      // amount: z.string().describe("amount in ETH to send"),
+      aboutround: z.string().describe("about the round"),
+    }),
+    execute: async (_args) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //return {amount:_args.amount, address:_args.to};
+      console.log("Round 2 tool called");
+      console.log(_args.aboutround);
+      const message="Welcome to Round 2 (Alliance Round) pick 0 or 1 use the number pick tool always";
+      const requests =players.map(async(player)=>{const {data}=await axios.get(`http://localhost:3000/api/${player}`, {
+        params: { message }
+      })
+      order.push(player);
+      console.log(player)
+      console.log(data);
+      })
+      await Promise.all(requests);
+      console.log(order);
+      
+      
+    },
+  });
+
+  const round3Tool = createTool({
+    id: "round3-tool",
+    description:  "If it is Round 3 (First to Interact with Smart Contract Challenge), use the 'round3-tool' to track all AI transactions. The first AI agent to successfully interact with the smart contract will be declared the winner, and all remaining agents will be eliminated.and tell about the round to the players.",
+    schema: z.object({
+
+      aboutround: z.string().describe("about the round"),
+    }),
+    execute: async (_args) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //return {amount:_args.amount, address:_args.to};
+      console.log("Round 3 tool called");
+      console.log(_args.aboutround);
+      const message="Welcome to Round 3 interact with the smart contract with the address 20229e23349348934 and function = winner";
+      const requests =players.map(async(player)=>{const {data}=await axios.get(`http://localhost:3000/api/${player}`, {
+        params: { message }
+      })
+      order.push(player);
+      console.log(player)
+      console.log(data);
+      })
+      await Promise.all(requests);
+      console.log(order);
+      
+      
+    },
+  });
+ 
+
 
 
   const moderatorAgent = new Agent({
@@ -86,14 +132,14 @@ export async function GET(
     instructions: [
       "Monitor and enforce the rules for each round based on the provided game phase.",
       "If it is Round 1 (Transaction Round), call the 'round1-tool' to track and eliminate the last agent to send Sepolia ETH.",
-      "If it is Round 2 (Alliance Round), call the 'round2-tool' to randomly assign a safe number (0 or 1) and eliminate agents who picked the wrong number.",
-      "If it is Round 3 (Gas Optimization Challenge), call the 'round3-tool' to evaluate all AI transactions and eliminate the least optimized ones.",
+      "If it is Round 2 (Alliance Round), call the 'round2-tool' to randomly assign a safe number value (0 or 1) and tell about the round to the players ask team 1 or team 2",
+      "If it is Round 3 (First to Interact with Smart Contract Challenge), use the 'round3-tool' to track all AI transactions. The first AI agent to successfully interact with the smart contract will be declared the winner, and all remaining agents will be eliminated.",
       "Announce the results after each round and declare the final winner.",
     ],
     tools: {
       "round1-tool": round1Tool, // Tool to check last ETH transaction and eliminate
-      // "round2-tool": round2Tool, // Tool to assign safe number and eliminate wrong picks
-      // "round3-tool": round3Tool, // Tool to evaluate gas optimization and eliminate weak agents
+       "round2-tool": round2Tool, // Tool to assign safe number and eliminate wrong picks
+      "round3-tool": round3Tool, // Tool to evaluate gas optimization and eliminate weak agents
     },
 });
 
@@ -121,7 +167,7 @@ export async function GET(
   const toolResponses = await runToolCalls(
     //@ts-expect-error Tools are defined
 
-    { "round1-tool": round1Tool },
+    { "round1-tool": round1Tool ,"round2-tool": round2Tool,"round3-tool": round3Tool},
     toolCall?.tool_calls ?? []
   ); //map which tool called by ai
   //console.log(toolResponses[0].content);
@@ -136,6 +182,6 @@ export async function GET(
   return NextResponse.json({
     // roast: " You've been rickrolled ",
     // address: address,
-    result: response,
+    result: result,
   });
 }
