@@ -1,9 +1,9 @@
 export interface AgentCardProps {
-  id: number | undefined;
+  agentId: number | undefined;
   name: string | undefined;
   description: string | undefined;
   image: string | undefined;
-  traits: string[] | undefined;
+  traits: readonly string[] | undefined;
   fromGame?: boolean | undefined;
   onClicked?: () => void;
   onDragStart?: (
@@ -13,7 +13,7 @@ export interface AgentCardProps {
 }
 
 export interface GameCardProps {
-  gameId: number | undefined;
+  gameId: string | undefined;
   gameStarted: boolean | undefined;
   gameEnded: boolean | undefined;
   currentRound: number | undefined;
