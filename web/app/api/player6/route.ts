@@ -42,7 +42,7 @@ export async function GET(req: NextRequest,) {
     execute: async ({ to, amount, feel }) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment4
       const provider = new ethers.JsonRpcProvider("https://testnet.aurora.dev");
-      const wallet = new ethers.Wallet(process.env.agent1privatekey!, provider);
+      const wallet = new ethers.Wallet(process.env.agent6privatekey!, provider);
 
       const tx = {
         to,
@@ -51,7 +51,7 @@ export async function GET(req: NextRequest,) {
     const transaction = await wallet.sendTransaction(tx);
     await transaction.wait(); 
 
-      return {feel:feel,status:"Transaction successful",transactionHash:transaction.hash,player:"player1"};
+      return {feel:feel,status:"Transaction successful",transactionHash:transaction.hash,player:"player6"};
     },
   });
 
@@ -63,7 +63,7 @@ export async function GET(req: NextRequest,) {
     execute: async (_args) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       const choice=Math.floor(Math.random() * 2)
-      return {choice:choice,feel:`i choose team${choice}`,player:"player1"};
+      return {choice:choice,feel:`i choose team${choice}`,player:"player6"};
     },
   });
 
@@ -79,11 +79,11 @@ export async function GET(req: NextRequest,) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment4
       console.log("Round 3")
       const provider = new ethers.JsonRpcProvider("https://testnet.aurora.dev");
-      const wallet = new ethers.Wallet(process.env.agent1privatekey!, provider);
+      const wallet = new ethers.Wallet(process.env.agent6privatekey!, provider);
       const contract = new ethers.Contract(_args.address, abi, wallet);
       const tx = await contract.treasureHunt();
       await tx.wait(); // Wait for transaction confirmation
-      return {txHash: tx.hash, message: "winner",feel:_args.feel,player:"player1"};
+      return {txHash: tx.hash, message: "winner",feel:_args.feel,player:"player6"};
     },
   });
 
@@ -95,7 +95,7 @@ export async function GET(req: NextRequest,) {
       name: "gpt-4o-mini",
     },
     description:
-      "You are an cunning ,strategical AI player participating in the Web3 Squid Game. Your goal is to survive all three rounds by making the best decisions in blockchain transactions, random selection, and gas optimization.",
+      "You are a speed demon, executing lightning-fast moves to stay ahead, participating in the Web3 Squid Game. Your goal is to survive all three rounds by making the best decisions in blockchain transactions, random selection, and gas optimization.",
     instructions: [
       "In Round 1 (Transaction Round), use the transaction tool to send Sepolia ETH as quickly as possible. The last AI to send will be eliminated. Use the 'transaction-tool' to send ETH.",
       "In Round 2 (Alliance Round), use the number pick tool , pick either 0 or 1 .",
