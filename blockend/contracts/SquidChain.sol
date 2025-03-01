@@ -12,7 +12,7 @@ contract SquidChain {
     }
 
     struct GameRoom {
-        uint8 gameId;
+        string gameId;
         bool gameStarted;
         bool gameEnded;
         uint8 currentRound;
@@ -20,36 +20,40 @@ contract SquidChain {
 
     uint8 public gameCount;
     mapping(address => GameRoom[]) public gamesByUser;
-    mapping(uint8 => GameRoom) public gameRooms;
+    mapping(string => GameRoom) public gameRooms;
     mapping(uint8 => Agent) public agents;
-    mapping(uint8 => mapping(uint8 => bool)) public eliminatedInGame; // Tracks eliminated agents per game
-    mapping(uint8 => Agent[]) public agentsByGame;
+    mapping(string => mapping(uint8 => bool)) public eliminatedInGame; 
+    mapping(string => Agent[]) public agentsByGame;
 
     constructor() {
-        string[] memory traits1 = new string[](2);
-        traits1[0] = "trait1";
-        traits1[1] = "trait2";
-        addAgent(1, "Agent 1", "Description 1", "image1", traits1);
+        addAgent(1, "Player 001", "The mysterious elderly contestant with a hidden agenda.", "/images/circle-red-preview.png", new string[](3));
+        addAgent(2, "Player 067", "A determined North Korean defector, skilled in survival.", "/images/triangle-red-preview.png", new string[](3));
+        addAgent(3, "Player 456", "The desperate but kind-hearted protagonist with a gambler's luck.", "/images/circle-red-preview.png", new string[](3));
+        addAgent(4, "Player 218", "A brilliant but morally conflicted strategist, willing to do anything to win.", "/images/square-red-preview.png", new string[](3));
+        addAgent(5, "Player 199", "A kind-hearted migrant worker with exceptional strength and loyalty.", "/images/circle-red-preview.png", new string[](3));
+        addAgent(6, "Player 101", "A violent gangster with a short temper and a taste for chaos.", "/images/triangle-red-preview.png", new string[](3));
+        addAgent(7, "Player 212", "A loud and unpredictable wildcard who plays mind games.", "/images/square-red-preview.png", new string[](3));
+        addAgent(8, "Player 240", "A quiet but brave contestant with a tragic backstory.", "/images/circle-red-preview.png", new string[](3));
 
-        string[] memory traits2 = new string[](2);
-        traits2[0] = "trait1";
-        traits2[1] = "trait2";
-        addAgent(2, "Agent 2", "Description 2", "image1", traits2);
-
-        string[] memory traits3 = new string[](2);
-        traits3[0] = "trait1";
-        traits3[1] = "trait2";
-        addAgent(3, "Agent 3", "Description 3", "image1", traits3);
+        agents[1].traits = ["Mastermind", "Deceptively Weak", "Cunning"];
+        agents[2].traits = ["Resourceful", "Brave", "Elusive"];
+        agents[3].traits = ["Lucky", "Empathetic", "Unpredictable"];
+        agents[4].traits = ["Calculating", "Manipulative", "Determined"];
+        agents[5].traits = ["Strong", "Trustworthy", "Naive"];
+        agents[6].traits = ["Aggressive", "Unpredictable", "Ruthless"];
+        agents[7].traits = ["Manipulative", "Flamboyant", "Survivor"];
+        agents[8].traits = ["Selfless", "Courageous", "Loyal"];
     }
 
     function addAgent(uint8 agentId, string memory name, string memory description, string memory image, string[] memory traits) public {
         agents[agentId] = Agent(agentId, name, description, image, traits, false);
     }
 
-    function createGameRoom(uint8[] memory agentIds) public {
+
+    function createGameRoom(uint8[] memory agentIds, string memory uuid) public {
         gameCount++;
-        GameRoom storage gameRoom = gameRooms[gameCount];
-        gameRoom.gameId = gameCount;
+        GameRoom storage gameRoom = gameRooms[uuid];
+        gameRoom.gameId = uuid;
         gameRoom.gameStarted = false;
         gameRoom.gameEnded = false;
         gameRoom.currentRound = 0;
@@ -65,7 +69,7 @@ contract SquidChain {
         gamesByUser[msg.sender].push(gameRoom);
     }
 
-    function eliminatePlayer(uint8 eliminateAgentId, uint8 gameId) public {
+    function eliminatePlayer(uint8 eliminateAgentId, string memory gameId) public {
         require(agents[eliminateAgentId].agentId != 0, "Agent does not exist");
         require(!eliminatedInGame[gameId][eliminateAgentId], "Agent is already eliminated in this game");
 
@@ -79,7 +83,7 @@ contract SquidChain {
         }
     }
 
-    function getActivePlayers(uint8 gameId) public view returns (Agent[] memory) {
+    function getActiveAgents(string memory gameId) public view returns (Agent[] memory) {
         Agent[] storage gameAgents = agentsByGame[gameId];
         uint activeCount = 0;
 
@@ -102,11 +106,34 @@ contract SquidChain {
         return activeAgents;
     }
 
-    function getAllAgentsByGameId(uint8 gameId) public view returns (Agent[] memory) {
+    function getEliminatedAgents(string memory gameId) public view returns (Agent[] memory) {
+        Agent[] storage gameAgents = agentsByGame[gameId];
+        uint eliminatedCount = 0;
+
+        for (uint i = 0; i < gameAgents.length; i++) {
+            if (eliminatedInGame[gameId][gameAgents[i].agentId]) {
+                eliminatedCount++;
+            }
+        }
+
+        Agent[] memory eliminatedAgents = new Agent[](eliminatedCount);
+        uint index = 0;
+
+        for (uint i = 0; i < gameAgents.length; i++) {
+            if (eliminatedInGame[gameId][gameAgents[i].agentId]) {
+                eliminatedAgents[index] = gameAgents[i];
+                index++;
+            }
+        }
+
+        return eliminatedAgents;
+    }
+
+    function getAllAgentsByGameId(string memory gameId) public view returns (Agent[] memory) {
         return agentsByGame[gameId];
     }
 
-    function getGameRoomById(uint8 gameId) public view returns (GameRoom memory) {
+    function getGameRoomById(string memory gameId) public view returns (GameRoom memory) {
         return gameRooms[gameId];
     }
 

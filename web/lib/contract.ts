@@ -23,6 +23,16 @@ export const wagmiContractConfig = {
           name: "description",
           type: "string",
         },
+        {
+          internalType: "string",
+          name: "image",
+          type: "string",
+        },
+        {
+          internalType: "string[]",
+          name: "traits",
+          type: "string[]",
+        },
       ],
       name: "addAgent",
       outputs: [],
@@ -55,6 +65,55 @@ export const wagmiContractConfig = {
           type: "string",
         },
         {
+          internalType: "string",
+          name: "image",
+          type: "string",
+        },
+        {
+          internalType: "bool",
+          name: "eliminated",
+          type: "bool",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "string",
+          name: "",
+          type: "string",
+        },
+        {
+          internalType: "uint256",
+          name: "",
+          type: "uint256",
+        },
+      ],
+      name: "agentsByGame",
+      outputs: [
+        {
+          internalType: "uint8",
+          name: "agentId",
+          type: "uint8",
+        },
+        {
+          internalType: "string",
+          name: "name",
+          type: "string",
+        },
+        {
+          internalType: "string",
+          name: "description",
+          type: "string",
+        },
+        {
+          internalType: "string",
+          name: "image",
+          type: "string",
+        },
+        {
           internalType: "bool",
           name: "eliminated",
           type: "bool",
@@ -70,6 +129,11 @@ export const wagmiContractConfig = {
           name: "agentIds",
           type: "uint8[]",
         },
+        {
+          internalType: "string",
+          name: "uuid",
+          type: "string",
+        },
       ],
       name: "createGameRoom",
       outputs: [],
@@ -84,14 +148,38 @@ export const wagmiContractConfig = {
           type: "uint8",
         },
         {
-          internalType: "uint8",
+          internalType: "string",
           name: "gameId",
-          type: "uint8",
+          type: "string",
         },
       ],
       name: "eliminatePlayer",
       outputs: [],
       stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "string",
+          name: "",
+          type: "string",
+        },
+        {
+          internalType: "uint8",
+          name: "",
+          type: "uint8",
+        },
+      ],
+      name: "eliminatedInGame",
+      outputs: [
+        {
+          internalType: "bool",
+          name: "",
+          type: "bool",
+        },
+      ],
+      stateMutability: "view",
       type: "function",
     },
     {
@@ -110,17 +198,17 @@ export const wagmiContractConfig = {
     {
       inputs: [
         {
-          internalType: "uint8",
+          internalType: "string",
           name: "",
-          type: "uint8",
+          type: "string",
         },
       ],
       name: "gameRooms",
       outputs: [
         {
-          internalType: "uint8",
+          internalType: "string",
           name: "gameId",
-          type: "uint8",
+          type: "string",
         },
         {
           internalType: "bool",
@@ -157,9 +245,9 @@ export const wagmiContractConfig = {
       name: "gamesByUser",
       outputs: [
         {
-          internalType: "uint8",
+          internalType: "string",
           name: "gameId",
-          type: "uint8",
+          type: "string",
         },
         {
           internalType: "bool",
@@ -183,9 +271,9 @@ export const wagmiContractConfig = {
     {
       inputs: [
         {
-          internalType: "uint8",
+          internalType: "string",
           name: "gameId",
-          type: "uint8",
+          type: "string",
         },
       ],
       name: "getActivePlayers",
@@ -206,6 +294,67 @@ export const wagmiContractConfig = {
               internalType: "string",
               name: "description",
               type: "string",
+            },
+            {
+              internalType: "string",
+              name: "image",
+              type: "string",
+            },
+            {
+              internalType: "string[]",
+              name: "traits",
+              type: "string[]",
+            },
+            {
+              internalType: "bool",
+              name: "eliminated",
+              type: "bool",
+            },
+          ],
+          internalType: "struct SquidChain.Agent[]",
+          name: "",
+          type: "tuple[]",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "string",
+          name: "gameId",
+          type: "string",
+        },
+      ],
+      name: "getAllAgentsByGameId",
+      outputs: [
+        {
+          components: [
+            {
+              internalType: "uint8",
+              name: "agentId",
+              type: "uint8",
+            },
+            {
+              internalType: "string",
+              name: "name",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "description",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "image",
+              type: "string",
+            },
+            {
+              internalType: "string[]",
+              name: "traits",
+              type: "string[]",
             },
             {
               internalType: "bool",
@@ -237,6 +386,47 @@ export const wagmiContractConfig = {
     {
       inputs: [
         {
+          internalType: "string",
+          name: "gameId",
+          type: "string",
+        },
+      ],
+      name: "getGameRoomById",
+      outputs: [
+        {
+          components: [
+            {
+              internalType: "string",
+              name: "gameId",
+              type: "string",
+            },
+            {
+              internalType: "bool",
+              name: "gameStarted",
+              type: "bool",
+            },
+            {
+              internalType: "bool",
+              name: "gameEnded",
+              type: "bool",
+            },
+            {
+              internalType: "uint8",
+              name: "currentRound",
+              type: "uint8",
+            },
+          ],
+          internalType: "struct SquidChain.GameRoom",
+          name: "",
+          type: "tuple",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
           internalType: "address",
           name: "userAddress",
           type: "address",
@@ -247,36 +437,9 @@ export const wagmiContractConfig = {
         {
           components: [
             {
-              internalType: "uint8",
+              internalType: "string",
               name: "gameId",
-              type: "uint8",
-            },
-            {
-              components: [
-                {
-                  internalType: "uint8",
-                  name: "agentId",
-                  type: "uint8",
-                },
-                {
-                  internalType: "string",
-                  name: "name",
-                  type: "string",
-                },
-                {
-                  internalType: "string",
-                  name: "description",
-                  type: "string",
-                },
-                {
-                  internalType: "bool",
-                  name: "eliminated",
-                  type: "bool",
-                },
-              ],
-              internalType: "struct SquidChain.Agent[]",
-              name: "agents",
-              type: "tuple[]",
+              type: "string",
             },
             {
               internalType: "bool",

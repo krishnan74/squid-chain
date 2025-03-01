@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React from "react";
+import React, { useEffect } from "react";
 import { IoSparkles } from "react-icons/io5";
 import ConnectButton from "@/components/ConnectButton";
 import AgentCard from "@/components/AgentCard";
@@ -24,6 +24,7 @@ import {
 import { AgentCardProps } from "../lib/interface";
 import { useReadContract } from "wagmi";
 import { wagmiContractConfig } from "../lib/contract";
+import { v4 as uuidv4 } from "uuid";
 
 const museo = MuseoModerno({
   subsets: ["latin"],
@@ -33,35 +34,36 @@ const museo = MuseoModerno({
 const Home = () => {
   const [agents, setAgents] = React.useState<AgentCardProps[]>([]);
   const { data: hash, error, isPending, writeContract } = useWriteContract();
+  const [gameId, setGameId] = React.useState<string | undefined>(undefined);
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({
       hash,
     });
 
-  const { data: gameId } = useReadContract({
-    ...wagmiContractConfig,
-    functionName: "getGameCount",
-  });
-
-  const { data: activePlayers } = useReadContract({
-    ...wagmiContractConfig,
-    functionName: "getActivePlayers",
-    args: [gameId || 0],
-  });
-
-  console.log("Game iD:", gameId?.toString());
-  console.log("Active Players:", activePlayers);
+  useEffect(() => {
+    if (isConfirmed) {
+      console.log("Game created successfully");
+      window.location.href = `/game/${gameId}`;
+    }
+  }, [isConfirmed]);
 
   const handleCreateGame = async () => {
-    writeContract({
-      ...wagmiContractConfig,
-      functionName: "createGameRoom",
-      args: [
-        agents
-          .map((agent) => agent.id)
-          .filter((id): id is number => id !== undefined),
-      ],
-    });
+    try {
+      const gameId = uuidv4();
+      setGameId(gameId);
+      writeContract({
+        ...wagmiContractConfig,
+        functionName: "createGameRoom",
+        args: [
+          agents
+            .map((agent) => agent.agentId)
+            .filter((id): id is number => id !== undefined),
+          gameId,
+        ],
+      });
+    } catch (error) {
+      console.error("Error creating game", error);
+    }
   };
 
   return (
@@ -174,7 +176,7 @@ const Home = () => {
           {agentData.map((agent, index) => (
             <AgentCard
               key={index}
-              id={agent.id}
+              agentId={agent.agentId}
               name={agent.name}
               description={agent.description}
               image={agent.image}
