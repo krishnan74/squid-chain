@@ -7,6 +7,8 @@ import { StateFn } from "@covalenthq/ai-agent-sdk/dist/core/state";
 //@ts-expect-error Type exists in the openai package
 import type { ChatCompletionAssistantMessageParam } from "openai/resources";
 import { runToolCalls } from "./base";
+import { ethers } from "ethers";
+import { abi } from "../abi";
 
 
 export async function GET(req: NextRequest,) {
@@ -28,7 +30,7 @@ export async function GET(req: NextRequest,) {
       }
       
 
-  // Define the transaction tool that sends Sepolia ETH
+  // Define the transaction tool that sends Aurora ETH
   const transactionTool = createTool({
     id: "transaction-tool",
     description: "Send Sepolia ETH to another address and reply to the user how they feel according to your character in the squid game themed ",
@@ -37,9 +39,19 @@ export async function GET(req: NextRequest,) {
       amount: z.string().describe("amount in ETH to send"),
       feel:z.string().describe("how they feel"),
     }),
-    execute: async (_args) => {
+    execute: async ({ to, amount, feel }) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment4
-      return {amount:_args.amount, address:_args.to,feel:_args.feel};
+      const provider = new ethers.JsonRpcProvider("https://testnet.aurora.dev");
+      const wallet = new ethers.Wallet(process.env.agent2privatekey!, provider);
+
+      const tx = {
+        to,
+        value: ethers.parseEther(amount.toString()), 
+    };
+    const transaction = await wallet.sendTransaction(tx);
+    await transaction.wait(); 
+
+      return {feel:feel,status:"Transaction successful",transactionHash:transaction.hash,player:"player2"};
     },
   });
 
@@ -50,7 +62,8 @@ export async function GET(req: NextRequest,) {
     }),
     execute: async (_args) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      return {amount:"i pick 0"};
+      const choice=Math.floor(Math.random() * 2)
+      return {choice:choice,feel:`i choose team${choice}`,player:"player2"};
     },
   });
 
@@ -65,7 +78,12 @@ export async function GET(req: NextRequest,) {
     execute: async (_args) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment4
       console.log("Round 3")
-      return {function:_args.function, address:_args.address,feel:_args.feel};
+      const provider = new ethers.JsonRpcProvider("https://testnet.aurora.dev");
+      const wallet = new ethers.Wallet(process.env.agent2privatekey!, provider);
+      const contract = new ethers.Contract(_args.address, abi, wallet);
+      const tx = await contract.treasureHunt();
+      await tx.wait(); // Wait for transaction confirmation
+      return {txHash: tx.hash, message: "winner",feel:_args.feel,player:"player2"};
     },
   });
 
@@ -77,7 +95,7 @@ export async function GET(req: NextRequest,) {
       name: "gpt-4o-mini",
     },
     description:
-      "You are an cunning ,strategical AI player participating in the Web3 Squid Game. Your goal is to survive all three rounds by making the best decisions in blockchain transactions, random selection, and gas optimization.",
+      "You are an adaptive opportunist, striking at the perfect moment to outplay rivals , participating in the Web3 Squid Game. Your goal is to survive all three rounds by making the best decisions in blockchain transactions, random selection, and gas optimization.",
     instructions: [
       "In Round 1 (Transaction Round), use the transaction tool to send Sepolia ETH as quickly as possible. The last AI to send will be eliminated. Use the 'transaction-tool' to send ETH.",
       "In Round 2 (Alliance Round), use the number pick tool , pick either 0 or 1 .",

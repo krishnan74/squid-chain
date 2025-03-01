@@ -8,6 +8,7 @@ import { StateFn } from "@covalenthq/ai-agent-sdk/dist/core/state";
 import type { ChatCompletionAssistantMessageParam } from "openai/resources";
 import { runToolCalls } from "./base";
 import axios from "axios";
+import { abi } from "../../abi";
 
 
 export async function GET(
@@ -15,28 +16,15 @@ export async function GET(
   context: { params: Promise<{ prompt?: string }> } 
 ) {
     
-    const players=["player1","player2","player3","player4","player5","player6"];
+    const players=["player1","player2","player3"];
     const order:string[]=[];
-    type Message = {
-        role: string;
-        content: string;
-      };
-      
-      type Result = {
-        messages: Message[];
-      };
-      
-      function extractAssistantReply(result: Result): string | null {
-        const assistantMessage = result.messages.find(msg => msg.role === "assistant");
-        return assistantMessage ? assistantMessage.content : null;
-      }
-      
+   
 
   
 
   const round1Tool = createTool({
     id: "round1-tool",
-    description: "If it is Round 1 (Transaction Round), call the 'round1-tool' to track and eliminate the last agent to send Sepolia ETH,and tell about the round and game to the players.",
+    description: "If it is Round 1 (Transaction Round), call the 'round1-tool' to track and eliminate the last agent to send Aurora ETH,and tell about the round and game to the players.",
     schema: z.object({
       // to: z.string().describe("recipient address"),
       // amount: z.string().describe("amount in ETH to send"),
@@ -45,19 +33,21 @@ export async function GET(
     execute: async (_args) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //return {amount:_args.amount, address:_args.to};
-      console.log("Round 1 tool called");
-      console.log(_args.aboutround);
+      const response:any=[];
+
       const message = "send 0.001 base eth to 0x40f4F8534A1655E5B0BDC4fBaA3B24efD3E90bf2";
 
       const requests =players.map(async(player)=>{const {data}=await axios.get(`http://localhost:3000/api/${player}`, {
         params: { message }
       })
       order.push(player);
-      console.log(player)
-      console.log(data);
+      
+      data.aboutround=_args.aboutround;
+      response.push(data);
       })
       await Promise.all(requests);
       console.log(order);
+      return response;
       
 
     },
@@ -74,18 +64,24 @@ export async function GET(
     execute: async (_args) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //return {amount:_args.amount, address:_args.to};
-      console.log("Round 2 tool called");
-      console.log(_args.aboutround);
+      const response:any=[];
+
       const message="Welcome to Round 2 (Alliance Round) pick 0 or 1 use the number pick tool always";
+
+      const safeno=Math.floor(Math.random() * 2)
+
       const requests =players.map(async(player)=>{const {data}=await axios.get(`http://localhost:3000/api/${player}`, {
         params: { message }
       })
       order.push(player);
-      console.log(player)
-      console.log(data);
+  
+      data.aboutround=_args.aboutround;
+      data.winner=`the players who chose ${safeno} are safe and are advanced to the next and final round and the rest are eliminated`
+      response.push(data);
       })
       await Promise.all(requests);
       console.log(order);
+      return response;
       
       
     },
@@ -101,19 +97,24 @@ export async function GET(
     execute: async (_args) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //return {amount:_args.amount, address:_args.to};
+      const response:any=[];
+
       console.log("Round 3 tool called");
       console.log(_args.aboutround);
-      const message="Welcome to Round 3 interact with the smart contract with the address 20229e23349348934 and function = winner";
+      const message="Welcome to Round 3 interact with the smart contract with the address 0x024C8bE7f90cf2913816De8aFe85640f1f1a3FBd and function = treasureHunt";
       const requests =players.map(async(player)=>{const {data}=await axios.get(`http://localhost:3000/api/${player}`, {
         params: { message }
       })
-      order.push(player);
-      console.log(player)
-      console.log(data);
+      order.push(player);  //to track order of repsonse
+
+      data.aboutround=_args.aboutround;
+      data.winner=`the winner is ${player} and wins 45.6 billion Korean won`;
+      response.push(data);
+      
       })
       await Promise.all(requests);
       console.log(order);
-      
+      return response[0];
       
     },
   });
@@ -131,7 +132,7 @@ export async function GET(
       "You are the Squid Game Moderator AI, responsible for enforcing the rules and eliminating AI agents based on their performance in each round. You manage three rounds of the Web3 Squid Game and decide which AI agents advance or get eliminated.",
     instructions: [
       "Monitor and enforce the rules for each round based on the provided game phase.",
-      "If it is Round 1 (Transaction Round), call the 'round1-tool' to track and eliminate the last agent to send Sepolia ETH.",
+      "If it is Round 1 (Transaction Round), call the 'round1-tool' to track and eliminate the last agent to send Aurora ETH.",
       "If it is Round 2 (Alliance Round), call the 'round2-tool' to randomly assign a safe number value (0 or 1) and tell about the round to the players ask team 1 or team 2",
       "If it is Round 3 (First to Interact with Smart Contract Challenge), use the 'round3-tool' to track all AI transactions. The first AI agent to successfully interact with the smart contract will be declared the winner, and all remaining agents will be eliminated.",
       "Announce the results after each round and declare the final winner.",
@@ -172,16 +173,14 @@ export async function GET(
   ); //map which tool called by ai
   //console.log(toolResponses[0].content);
 
-  const responseContent = extractAssistantReply(result); // Getting assistant reply as string
 
   const response = {
-    message: responseContent, 
     tool: toolResponses.length > 0 ? toolResponses[0].content : null, 
     };
 
   return NextResponse.json({
     // roast: " You've been rickrolled ",
     // address: address,
-    result: result,
+    result: response.tool,
   });
 }
