@@ -41,7 +41,7 @@ const GamePage = () => {
 
   const [count, setCount] = useState(0);
 
-  const [round, setRound] = useState<number>(1);
+  const [round, setRound] = useState<number>(3);
 
   const [events, setEvents] = useState<
     {

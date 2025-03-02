@@ -51,17 +51,22 @@ const Explore = () => {
   }, [gameRooms]);
 
   return (
-    <div className="flex flex-col justify-start items-center  p-6  min-h-screen">
-      <h1 className="text-4xl  text-[#F50276]">Explore</h1>
+    <div className="flex flex-col items-center p-6 h-screen w-full">
+      {/* Fixed Header */}
+      <h1 className="text-4xl text-[#F50276]">Explore</h1>
       <h2 className="text-2xl font-semibold text-gray-400">
         {gameRoomsData.length > 0
           ? "Created Game Rooms"
           : "You have not created any game rooms"}
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl mt-10">
-        {gameRoomsData.map((gameRoom, index) => (
-          <GameCard key={index} {...gameRoom} />
-        ))}
+
+      {/* Scrollable Game Rooms List */}
+      <div className="w-full max-w-6xl mt-4 overflow-y-auto h-[calc(100vh-8rem)] px-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {gameRoomsData.map((gameRoom, index) => (
+            <GameCard key={index} {...gameRoom} />
+          ))}
+        </div>
       </div>
     </div>
   );
