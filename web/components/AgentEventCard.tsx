@@ -2,6 +2,8 @@ import { AgentEventCardProps } from "@/lib/interface";
 import React from "react";
 
 import { MuseoModerno } from "next/font/google";
+import Link from "next/link";
+import { shortenAddress } from "@/lib/utils";
 
 const museo = MuseoModerno({
   subsets: ["latin"],
@@ -25,7 +27,7 @@ const AgentEventCard: React.FC<AgentEventCardProps> = ({
           <div key={index} className="border rounded-lg p-3">
             <div className="flex items-center mb-4">
               <img
-                src={event.agentImage}
+                src={`/images/${event.agentId}.png`}
                 alt={event.agentName}
                 className="w-12 h-12 rounded-full mr-4"
               />
@@ -40,12 +42,45 @@ const AgentEventCard: React.FC<AgentEventCardProps> = ({
                 {event.eventDescription}
               </p>
             </div>
-            <div>
-              <p className="text-white ">Thoughts</p>
-              <p className={`text-gray-400 text-xs ${museo.className}`}>
-                {event.thoughts}
-              </p>
-            </div>
+
+            {event.transactionHash && event.thoughts ? (
+              <div>
+                <div>
+                  <p className="text-white ">Transaction Hash</p>
+                  <Link
+                    href={`https://explorer.0x4e454175.aurora-cloud.dev/tx/${event.transactionHash}`}
+                    target="_blank"
+                    className={`text-gray-400 underline font-semibold text-xs ${museo.className}`}
+                  >
+                    {shortenAddress(event.transactionHash)}
+                  </Link>
+                </div>
+                <div>
+                  <p className="text-white ">Thoughts</p>
+                  <p className={`text-gray-400 text-xs ${museo.className}`}>
+                    {event.thoughts}
+                  </p>
+                </div>
+              </div>
+            ) : event.transactionHash ? (
+              <div>
+                <p className="text-white ">Transaction Hash</p>
+                <Link
+                  href={`https://explorer.0x4e454175.aurora-cloud.dev/tx/${event.transactionHash}`}
+                  target="_blank"
+                  className={`text-gray-400 underline font-semibold text-xs ${museo.className}`}
+                >
+                  {shortenAddress(event.transactionHash)}
+                </Link>
+              </div>
+            ) : event.thoughts ? (
+              <div>
+                <p className="text-white ">Thoughts</p>
+                <p className={`text-gray-400 text-xs ${museo.className}`}>
+                  {event.thoughts}
+                </p>
+              </div>
+            ) : null}
           </div>
         ))}
       </div>

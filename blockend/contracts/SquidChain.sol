@@ -58,7 +58,7 @@ contract SquidChain {
         gameRoom.gameId = uuid;
         gameRoom.gameStarted = false;
         gameRoom.gameEnded = false;
-        gameRoom.currentRound = 0;
+        gameRoom.currentRound = 1;
 
         for (uint i = 0; i < agentIds.length; i++) {
             require(agents[agentIds[i]].agentId != 0, "Agent does not exist");
@@ -69,6 +69,11 @@ contract SquidChain {
         }
 
         gamesByUser[msg.sender].push(gameRoom);
+    }
+
+    function changeGameRound (string memory gameId, uint8 newRound) public {
+        require(keccak256(abi.encodePacked(gameRooms[gameId].gameId)) != keccak256(abi.encodePacked("")), "Game does not exist");
+        gameRooms[gameId].currentRound = newRound;
     }
 
     function eliminatePlayer(uint8 eliminateAgentId, string memory gameId) public {

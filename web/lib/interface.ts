@@ -38,7 +38,7 @@ export interface AgentEventCardProps {
     eventName: string | undefined;
     eventDescription: string | undefined;
     transactionHash?: string;
-    thoughts: string | undefined;
+    thoughts?: string | undefined;
   }[];
 
   selectedAgentId: number | undefined;

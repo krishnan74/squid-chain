@@ -1,5 +1,5 @@
 export const wagmiContractConfig = {
-  address: "0x871Fe2DB99D8FBf20488A716980B66459C3494d8",
+  address: "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
   abi: [
     {
       inputs: [],
@@ -139,6 +139,24 @@ export const wagmiContractConfig = {
         },
       ],
       stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "string",
+          name: "gameId",
+          type: "string",
+        },
+        {
+          internalType: "uint8",
+          name: "newRound",
+          type: "uint8",
+        },
+      ],
+      name: "changeGameRound",
+      outputs: [],
+      stateMutability: "nonpayable",
       type: "function",
     },
     {

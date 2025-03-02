@@ -17,7 +17,7 @@ export default function ConnectButton() {
     <div className="">
       {!authenticated ? (
         <button
-          className="text-[#FF5159] bg-transparent border-[#FF5159] border hover:bg-[#FF5159] hover:text-white"
+          className="text-[#FF5159] bg-transparent border-[#FF5159] border hover:bg-[#FF5159] hover:text-white px-3"
           onClick={login}
         >
           Login

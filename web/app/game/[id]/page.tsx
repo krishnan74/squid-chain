@@ -18,6 +18,7 @@ import { wagmiContractConfig } from "@/lib/contract";
 import { useReadContract } from "wagmi";
 import AgentEventCard from "@/components/AgentEventCard";
 import axios from "axios";
+import { ethers } from "ethers";
 
 const museo = MuseoModerno({
   subsets: ["latin"],
@@ -32,9 +33,15 @@ const GamePage = () => {
     AgentCardProps | undefined
   >(undefined);
 
+  const [roundPreparation, setRoundPreparation] = useState<boolean>(false);
+
   const [messages, setMessages] = useState<
     { content: string; sender: SenderType; image: string; name: string }[]
   >([]);
+
+  const [count, setCount] = useState(0);
+
+  const [round, setRound] = useState<number>(1);
 
   const [events, setEvents] = useState<
     {
@@ -43,27 +50,12 @@ const GamePage = () => {
       agentImage: string;
       eventName: string;
       eventDescription: string;
-      thoughts: string;
+      thoughts?: string;
       transactionHash?: string;
     }[]
   >([]);
 
   const [showSplash, setShowSplash] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 3000); // Splash screen disappears after 3 seconds
-
-    return () => clearTimeout(timer); // Cleanup timer
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTemp((prev) => prev + 0.003);
-    }, 10);
-    return () => clearInterval(interval);
-  }, []);
 
   const { data: activeAgents } = useReadContract({
     ...wagmiContractConfig,
@@ -83,20 +75,101 @@ const GamePage = () => {
     args: [gameId || ""],
   });
 
+  useEffect(() => {
+    setRoundPreparation(true);
+    if (activeAgents) {
+      const timer = setTimeout(() => {
+        setRoundPreparation(false);
+        switch (round) {
+          case 1:
+            sendRound1Request();
+            break;
+          case 2:
+            sendRound2Request();
+            break;
+          case 3:
+            sendRound3Request();
+            break;
+          default:
+            break;
+        }
+      }, 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [round, activeAgents]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 5000); // Splash screen disappears after 3 seconds
+
+    return () => clearTimeout(timer); // Cleanup timer
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTemp((prev) => prev + 0.003);
+    }, 10);
+    return () => clearInterval(interval);
+  }, []);
+
+  const changeRound = async (gameId: string, round: number) => {
+    try {
+      const provider = new ethers.JsonRpcProvider(
+        "https://rpc-0x4e454175.aurora-cloud.dev/"
+      );
+      const wallet = new ethers.Wallet(
+        process.env.NEXT_PUBLIC_moderatorprivatekey!,
+        provider
+      );
+
+      const contract = new ethers.Contract(
+        wagmiContractConfig.address,
+        wagmiContractConfig.abi,
+        wallet
+      );
+
+      const tx = await contract.changeGameRound(gameId, round);
+      await tx.wait();
+
+      console.log(
+        `Round changed to ${round} for Game ${gameId}. TxHash: ${tx.hash}`
+      );
+
+      setEvents((prev) => [
+        ...prev,
+        {
+          agentId: 0,
+          agentName: "Moderator",
+          agentImage: "/images/circle-red-preview.png",
+          eventName: "Round Changed",
+          eventDescription: `Round changed to ${round}`,
+          transactionHash: tx.hash,
+        },
+      ]);
+
+      return tx.hash;
+    } catch (error) {
+      console.error("Error eliminating player:", error);
+      throw error;
+    }
+  };
+
   const sendRound1Request = async () => {
+    console.log("Round 1 Request");
     setMessages((prev) => [
       ...prev,
       {
         content: "Welcome to Round 1",
         sender: SenderType.MODERATOR,
-        image: "/images/circle-red-preview.png",
+        image: "/images/moderator.png",
         name: "Moderator",
       },
       {
         content:
           "In Round 1, AI agents are required to send Aurora ETH. The last agent to send their transaction will be eliminated. This round tests the quickness and efficiency of the agents in executing transactions.",
         sender: SenderType.MODERATOR,
-        image: "/images/circle-red-preview.png",
+        image: "/images/moderator.png",
         name: "Moderator",
       },
     ]);
@@ -120,7 +193,7 @@ const GamePage = () => {
         {
           content: response.result.tool.feel,
           sender: SenderType.AGENT,
-          image: "/images/circle-red-preview.png",
+          image: `/images/${agentId}.png`,
           name: "Player " + agentId,
         },
       ]);
@@ -130,7 +203,7 @@ const GamePage = () => {
         {
           agentId: Number(agentId),
           agentName: response.result.tool.player,
-          agentImage: "/images/circle-red-preview.png",
+          agentImage: `/images/${agentId}.png`,
           eventName: response.eventName,
           eventDescription: response.eventDescription,
           thoughts: response.result.tool.feel,
@@ -138,22 +211,26 @@ const GamePage = () => {
         },
       ]);
     });
+    setRound(2);
+    await changeRound(gameId, 2);
   };
 
   const sendRound2Request = async () => {
+    console.log("Round 2 Request");
+
     setMessages((prev) => [
       ...prev,
       {
         content: "Welcome to Round 2",
         sender: SenderType.MODERATOR,
-        image: "/images/circle-red-preview.png",
+        image: "/images/moderator.png",
         name: "Moderator",
       },
       {
         content:
-          "In Round 2, AI agents are required to send Aurora ETH. The last agent to send their transaction will be eliminated. This round tests the quickness and efficiency of the agents in executing transactions.",
+          "Attention, players. The time has come to form alliances. Choose wisely: Team 1 or Team 2. One of these teams will be safe... the other will face elimination. Your choices will determine your fate. Choose now—before it’s too late.",
         sender: SenderType.MODERATOR,
-        image: "/images/circle-red-preview.png",
+        image: "/images/moderator.png",
         name: "Moderator",
       },
     ]);
@@ -177,7 +254,7 @@ const GamePage = () => {
         {
           content: response.result.tool.feel,
           sender: SenderType.AGENT,
-          image: "/images/circle-red-preview.png",
+          image: `/images/${agentId}.png`,
           name: "Player " + agentId,
         },
       ]);
@@ -187,7 +264,7 @@ const GamePage = () => {
         {
           agentId: Number(agentId),
           agentName: response.result.tool.player,
-          agentImage: "/images/circle-red-preview.png",
+          agentImage: `/images/${agentId}.png`,
           eventName: response.eventName,
           eventDescription: response.eventDescription,
           thoughts: response.result.tool.feel,
@@ -200,26 +277,30 @@ const GamePage = () => {
       {
         content: moderatorResponse[0].winner,
         sender: SenderType.MODERATOR,
-        image: "/images/circle-red-preview.png",
+        image: "/images/moderator.png",
         name: "Moderator",
       },
     ]);
+    setRound(3);
+    await changeRound(gameId, 3);
   };
 
   const sendRound3Request = async () => {
+    console.log("Round 3 Request");
+
     setMessages((prev) => [
       ...prev,
       {
         content: "Welcome to Round 3",
         sender: SenderType.MODERATOR,
-        image: "/images/circle-red-preview.png",
+        image: "/images/moderator.png",
         name: "Moderator",
       },
       {
         content:
-          "In Round 3, AI agents are required to send Aurora ETH. The last agent to send their transaction will be eliminated. This round tests the quickness and efficiency of the agents in executing transactions.",
+          "In this round, The first AI agent to successfully interact with the smart contract will be declared the winner, and all remaining agents will be eliminated. Good luck to all agents!",
         sender: SenderType.MODERATOR,
-        image: "/images/circle-red-preview.png",
+        image: "/images/moderator.png",
         name: "Moderator",
       },
     ]);
@@ -243,7 +324,7 @@ const GamePage = () => {
         {
           content: response.result.tool.feel,
           sender: SenderType.AGENT,
-          image: "/images/circle-red-preview.png",
+          image: `/images/${agentId}.png`,
           name: "Player " + agentId,
         },
       ]);
@@ -253,7 +334,7 @@ const GamePage = () => {
         {
           agentId: Number(agentId),
           agentName: response.result.tool.player,
-          agentImage: "/images/circle-red-preview.png",
+          agentImage: `/images/${agentId}.png`,
           eventName: response.eventName,
           eventDescription: response.eventDescription,
           thoughts: response.result.tool.feel,
@@ -267,10 +348,12 @@ const GamePage = () => {
       {
         content: moderatorResponse[0].winner,
         sender: SenderType.MODERATOR,
-        image: "/images/circle-red-preview.png",
+        image: "/images/moderator.png",
         name: "Moderator",
       },
     ]);
+    setRound(0);
+    await changeRound(gameId, 0);
   };
 
   return (
@@ -294,7 +377,7 @@ const GamePage = () => {
                 gameId={gameRoom?.gameId}
                 gameStarted={gameRoom?.gameStarted}
                 gameEnded={gameRoom?.gameEnded}
-                currentRound={gameRoom?.currentRound}
+                currentRound={round}
                 activeAgents={activeAgents}
                 eliminatedAgents={eliminatedAgents}
               />
@@ -304,70 +387,96 @@ const GamePage = () => {
             </div>
           </div>
           <div className="relative w-[60%] h-full border ">
-            <button
-              onClick={sendRound1Request}
-              className="bg-[#F50276] text-white p-2 rounded-lg"
-            >
-              Start Round 1
-            </button>
+            {roundPreparation ? (
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center h-full">
+                <div className=" z-10 w-24 h-24 flex items-center justify-center bg-[#F50276] text-white text-lg font-bold rounded-full shadow-lg  border-4 border-white">
+                  <Image
+                    src={"/images/moderator.png"}
+                    width={100}
+                    height={100}
+                    alt=""
+                  />
+                </div>
 
-            <button
-              onClick={sendRound2Request}
-              className="bg-[#F50276] text-white p-2 rounded-lg"
-            >
-              Start Round 2
-            </button>
-
-            <button
-              onClick={sendRound3Request}
-              className="bg-[#F50276] text-white p-2 rounded-lg"
-            >
-              Start Round 3
-            </button>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 w-24 h-24 flex items-center justify-center bg-[#F50276] text-white text-lg font-bold rounded-full shadow-lg  border-4 border-white">
-              <Image
-                src={"/images/moderator.png"}
-                width={100}
-                height={100}
-                alt=""
-              />
-            </div>
-            {/* Agent Cards in a circle */}
-            <div className="relative top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all duration-300">
-              {activeAgents?.map((agent, index) => {
-                const angle = (index / activeAgents.length) * (2 * Math.PI);
-                const x = 200 * Math.cos(angle + temp);
-                const y = 200 * Math.sin(angle + temp);
-                // console.log(
-                //   `Index : ${index} \n Angle:  ${angle} \n x: ${x},  y: ${y}`
-                // );
-                return (
-                  <div
-                    key={agent.agentId}
-                    className="absolute "
-                    style={{ transform: `translate(${x + 15}px, ${y}px)` }}
-                  >
-                    <GameAgentCard
-                      agentId={agent.agentId}
-                      image={agent.image}
-                      name={agent.name}
-                      description={agent.description}
-                      traits={agent.traits}
-                      onClicked={() => setSelectedAgent(agent)}
+                <div className="flex gap-10 items-center justify-center">
+                  <div className=" z-10 w-24 h-24 flex items-center justify-center bg-[#F50276] text-white text-lg font-bold rounded-full shadow-lg  border-4 border-white">
+                    <Image
+                      src={"/images/circle-red-preview.png"}
+                      width={100}
+                      height={100}
+                      alt=""
                     />
-                    {/* Line connecting to circle-red-preview */}
                   </div>
-                );
-              })}
-            </div>
+                  <div className="z-10 w-24 h-24 flex items-center justify-center bg-[#F50276] text-white text-lg font-bold rounded-full shadow-lg  border-4 border-white">
+                    <Image
+                      src={"/images/square-red-preview.png"}
+                      width={100}
+                      height={100}
+                      alt=""
+                    />
+                  </div>
+
+                  <div className="z-10 w-24 h-24 flex items-center justify-center bg-[#F50276] text-white text-lg font-bold rounded-full shadow-lg  border-4 border-white">
+                    <Image
+                      src={"/images/triangle-red-preview.png"}
+                      width={100}
+                      height={100}
+                      alt=""
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <p className={`text-white text-lg mt-10 ${museo.className}`}>
+                    Round {round} Preparation in Progress...
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 w-24 h-24 flex items-center justify-center bg-[#F50276] text-white text-lg font-bold rounded-full shadow-lg  border-4 border-white">
+                  <Image
+                    src={"/images/moderator.png"}
+                    width={100}
+                    height={100}
+                    alt=""
+                  />
+                </div>
+                <div className="relative top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all duration-300">
+                  {activeAgents?.map((agent, index) => {
+                    const angle = (index / activeAgents.length) * (2 * Math.PI);
+                    const x = 200 * Math.cos(angle + temp);
+                    const y = 200 * Math.sin(angle + temp);
+
+                    return (
+                      <div
+                        key={agent.agentId}
+                        className="absolute "
+                        style={{ transform: `translate(${x + 15}px, ${y}px)` }}
+                      >
+                        <GameAgentCard
+                          agentId={agent.agentId}
+                          image={`/images/${agent.agentId}.png`}
+                          name={agent.name}
+                          description={agent.description}
+                          traits={agent.traits}
+                          onClicked={() => setSelectedAgent(agent)}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
+
           <div className=" w-[20%]  h-full flex flex-col rounded-r-lg">
             <div className=" bg-[#131313] h-[35%] flex-grow-0  rounded-tr-lg">
               <AgentCard
                 agentId={selectedAgent?.agentId}
                 name={selectedAgent?.name}
                 description={selectedAgent?.description}
-                image={selectedAgent?.image}
+                image={`/images/${selectedAgent?.agentId}.png`}
                 traits={selectedAgent?.traits}
                 fromGame={true}
                 onClicked={() => setSelectedAgent(undefined)}

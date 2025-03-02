@@ -85,7 +85,7 @@ const GameCard: React.FC<GameCardProps> = ({
                   <PopoverTrigger>
                     <Image
                       key={index}
-                      src={agent.image || ""}
+                      src={`/images/${agent.agentId}.png` || ""}
                       alt={agent.name || ""}
                       width={30}
                       height={30}
@@ -97,7 +97,7 @@ const GameCard: React.FC<GameCardProps> = ({
                       agentId={agent.agentId}
                       name={agent.name}
                       description={agent.description}
-                      image={agent.image}
+                      image={`/images/${agent.agentId}.png` || ""}
                       fromGame={true}
                       traits={agent.traits}
                       status="active"
@@ -115,7 +115,7 @@ const GameCard: React.FC<GameCardProps> = ({
                   <PopoverTrigger>
                     <Image
                       key={index}
-                      src={agent.image || ""}
+                      src={`/images/${agent.agentId}.png` || ""}
                       alt={agent.name || ""}
                       width={30}
                       height={30}
@@ -127,7 +127,7 @@ const GameCard: React.FC<GameCardProps> = ({
                       agentId={agent.agentId}
                       name={agent.name}
                       description={agent.description}
-                      image={agent.image}
+                      image={`/images/${agent.agentId}.png` || ""}
                       fromGame={true}
                       traits={agent.traits}
                       status="eliminated"

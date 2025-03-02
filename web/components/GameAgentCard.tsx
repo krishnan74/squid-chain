@@ -33,11 +33,11 @@ export const GameAgentCard: React.FC<AgentCardProps> = ({
       >
         <Image
           src={image}
-          width={80}
-          height={80}
+          width={30}
+          height={30}
           alt={name}
           onClick={onClicked}
-          className="cursor-pointer"
+          className="cursor-pointer object-cover"
         />
       </div>
       <div

@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
         "https://rpc-0x4e454175.aurora-cloud.dev/"
       );
       const wallet = new ethers.Wallet(
-        process.env.moderatorprivatekey!,
+        process.env.NEXT_PUBLIC_moderatorprivatekey!,
         provider
       );
 

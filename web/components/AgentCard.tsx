@@ -94,8 +94,9 @@ const AgentCard: React.FC<AgentCardProps> = ({
       <div className="flex justify-center w-full">
         <Image
           src={image}
-          width={fromGame ? 70 : 100}
-          height={fromGame ? 70 : 100}
+          width={fromGame ? 50 : 70}
+          height={fromGame ? 50 : 70}
+          className="object-cover "
           alt={name}
         />
       </div>
