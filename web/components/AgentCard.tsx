@@ -33,7 +33,7 @@ const AgentCard: React.FC<AgentCardProps> = ({
         }`}
       >
         {fromGame && (
-          <p className="text-black text-xl mb-4">No Agents Selected</p>
+          <p className="text-black text-2xl mb-4">No Agents Selected</p>
         )}
         <div className="flex justify-center w-full">
           <Skeleton className="h-[50px] w-[50px]  rounded-lg" />
@@ -78,7 +78,7 @@ const AgentCard: React.FC<AgentCardProps> = ({
           <p className="text-black text-xl ">Eliminated Agent</p>
         )
       ) : (
-        fromGame && <p className="text-black text-xl ">Selected Agent</p>
+        fromGame && <p className="text-black text-2xl ">Selected Agent</p>
       )}
 
       <div className="flex justify-center w-full">

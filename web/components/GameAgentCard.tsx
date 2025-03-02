@@ -17,10 +17,6 @@ export const GameAgentCard: React.FC<AgentCardProps> = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  if (isHovered) {
-    console.log("Hovered Agent " + name);
-  }
-
   if (image === undefined || name === undefined || description === undefined)
     return null;
 
