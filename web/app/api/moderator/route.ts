@@ -7,10 +7,10 @@ import { StateFn } from "@covalenthq/ai-agent-sdk/dist/core/state";
 //@ts-expect-error Type exists in the openai package
 import type { ChatCompletionAssistantMessageParam } from "openai/resources";
 import { runToolCalls } from "./base";
+import { wagmiContractConfig } from "@/lib/contract";
 import axios from "axios";
 import { AgentCardProps } from "@/lib/interface";
 import { ethers } from "ethers";
-import { abi } from "../abi";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -19,28 +19,36 @@ export async function POST(req: NextRequest) {
 
   const playerIds = activeAgents.map((agent: AgentCardProps) => agent.agentId);
 
-  const order: string[] = [];
+  const order: number[] = [];
 
   const eliminatePlayer = async (playerId: number, gameId: number) => {
     try {
-        const provider = new ethers.JsonRpcProvider("https://testnet.aurora.dev");
-        const wallet = new ethers.Wallet(process.env.agentprivatekey!, provider);
+      const provider = new ethers.JsonRpcProvider(
+        "https://rpc-0x4e454175.aurora-cloud.dev/"
+      );
+      const wallet = new ethers.Wallet(
+        process.env.moderatorprivatekey!,
+        provider
+      );
 
-        const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS!, abi, wallet);
+      const contract = new ethers.Contract(
+        wagmiContractConfig.address,
+        wagmiContractConfig.abi,
+        wallet
+      );
 
-        const tx = await contract.eliminatePlayer(playerId, gameId);
-        await tx.wait();
+      const tx = await contract.eliminatePlayer(playerId, gameId);
+      await tx.wait();
 
-        console.log(`Player ${playerId} eliminated from Game ${gameId}. TxHash: ${tx.hash}`);
-        return tx.hash;
+      console.log(
+        `Player ${playerId} eliminated from Game ${gameId}. TxHash: ${tx.hash}`
+      );
+      return tx.hash;
     } catch (error) {
-        console.error("Error eliminating player:", error);
-        throw error;
+      console.error("Error eliminating player:", error);
+      throw error;
     }
-};
-
-
-
+  };
 
   const round1Tool = createTool({
     id: "round1-tool",
@@ -66,14 +74,21 @@ export async function POST(req: NextRequest) {
             params: { message },
           }
         );
-        order.push(`player${playerId}`);
+        order.push(playerId);
 
         data.aboutround = _args.aboutround;
-        data.eventname="send aurora eth to the wallet address";
-        data.eventdesc="sent 0.001 aurora eth to the wallet address";
+        data.eventname = "send aurora eth to the wallet address";
+        data.eventdesc = "sent 0.001 aurora eth to the wallet address";
         response.push(data);
       });
       await Promise.all(requests);
+
+      const eliminateId = order.pop();
+
+      if (eliminateId) {
+        await eliminatePlayer(eliminateId, gameId);
+      }
+
       console.log(order);
       return response;
     },
@@ -108,8 +123,8 @@ export async function POST(req: NextRequest) {
         order.push(`player${playerId}`);
 
         data.aboutround = _args.aboutround;
-        data.eventname="Form alliances with other players";
-        data.eventdesc="alliance formed with other players";
+        data.eventname = "Form alliances with other players";
+        data.eventdesc = "alliance formed with other players";
         data.winner = `the players who chose ${safeno} are safe and are advanced to the next and final round and the rest are eliminated`;
         response.push(data);
       });
@@ -133,8 +148,7 @@ export async function POST(req: NextRequest) {
 
       console.log("Round 3 tool called");
       console.log(_args.aboutround);
-      const message =
-        "Welcome to Round 3 interact with the smart contract with the address 0x024C8bE7f90cf2913816De8aFe85640f1f1a3FBd and function = treasureHunt";
+      const message = `Welcome to Round 3 interact with the smart contract with the address ${wagmiContractConfig.address} and function = treasureHunt`;
 
       const requests = playerIds.map(async (playerId: number) => {
         const { data } = await axios.get(
@@ -146,8 +160,8 @@ export async function POST(req: NextRequest) {
         order.push(`player${playerId}`);
 
         data.aboutround = _args.aboutround;
-        data.eventname="Interact with the smart contract";
-        data.eventdesc="Interacted with the smart contract";
+        data.eventname = "Interact with the smart contract";
+        data.eventdesc = "Interacted with the smart contract";
         data.winner = `the winner is Player${playerId} and wins 45.6 billion Korean won`;
         response.push(data);
       });
@@ -182,14 +196,7 @@ export async function POST(req: NextRequest) {
   const user_prompt = round;
 
   const state = StateFn.root(moderatorAgent.description);
-  state.messages.push(
-    user(
-      //" recipient's address : 0x5352b10D192475cA7Fa799e502c29Ab3AA28657F, amount of Sepolia ETH: 0.1"
-      //"hi"
-      //"how to send transactions via etherium"
-      user_prompt
-    )
-  );
+  state.messages.push(user(user_prompt));
 
   const result = await moderatorAgent.run(state);
   const toolCall = result.messages[
@@ -213,8 +220,6 @@ export async function POST(req: NextRequest) {
   };
 
   return NextResponse.json({
-    // roast: " You've been rickrolled ",
-    // address: address,
     result: response.tool,
   });
 }

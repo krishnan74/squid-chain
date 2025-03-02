@@ -78,7 +78,7 @@ export async function GET(req: NextRequest,) {
     execute: async (_args) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment4
       console.log("Round 3")
-      const provider = new ethers.JsonRpcProvider("https://testnet.aurora.dev");
+      const provider = new ethers.JsonRpcProvider("https://rpc-0x4e454175.aurora-cloud.dev/");
       const wallet = new ethers.Wallet(process.env.agent6privatekey!, provider);
       const contract = new ethers.Contract(_args.address, abi, wallet);
       const tx = await contract.treasureHunt();
