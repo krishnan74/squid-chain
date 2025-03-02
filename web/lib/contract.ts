@@ -1,10 +1,29 @@
 export const wagmiContractConfig = {
-  address: "0x3659f991727f8fD58D167D39390F4208b9387f3A",
+  address: "0x871Fe2DB99D8FBf20488A716980B66459C3494d8",
   abi: [
     {
       inputs: [],
       stateMutability: "nonpayable",
       type: "constructor",
+    },
+    {
+      anonymous: false,
+      inputs: [
+        {
+          indexed: true,
+          internalType: "address",
+          name: "player",
+          type: "address",
+        },
+        {
+          indexed: false,
+          internalType: "bytes32",
+          name: "txHash",
+          type: "bytes32",
+        },
+      ],
+      name: "TreasureHunted",
+      type: "event",
     },
     {
       inputs: [
@@ -514,6 +533,19 @@ export const wagmiContractConfig = {
         },
       ],
       stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "treasureHunt",
+      outputs: [
+        {
+          internalType: "string",
+          name: "",
+          type: "string",
+        },
+      ],
+      stateMutability: "nonpayable",
       type: "function",
     },
   ],

@@ -25,6 +25,8 @@ contract SquidChain {
     mapping(string => mapping(uint8 => bool)) public eliminatedInGame; 
     mapping(string => Agent[]) public agentsByGame;
 
+    event TreasureHunted(address indexed player, bytes32 txHash);
+
     constructor() {
         addAgent(1, "Player 001", "The mysterious elderly contestant with a hidden agenda.", "/images/circle-red-preview.png", new string[](3));
         addAgent(2, "Player 067", "A determined North Korean defector, skilled in survival.", "/images/triangle-red-preview.png", new string[](3));
@@ -127,6 +129,11 @@ contract SquidChain {
         }
 
         return eliminatedAgents;
+    }
+
+    function treasureHunt() public returns (string memory) {
+        emit TreasureHunted(msg.sender, keccak256(abi.encodePacked(msg.sender, block.timestamp, blockhash(block.number - 1))));
+        return "winner";
     }
 
     function getAllAgentsByGameId(string memory gameId) public view returns (Agent[] memory) {

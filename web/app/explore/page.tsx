@@ -14,7 +14,7 @@ const Explore = () => {
   const { data: gameRooms } = useReadContract({
     ...wagmiContractConfig,
     functionName: "getGameRoomsByUser",
-    //@ts-expect-error
+    //@ts-expect-error Type 'string | undefined' is not assignable to type 'string'.
     args: [address],
   });
 

@@ -38,6 +38,16 @@ const GamePage = () => {
 
   const [events, setEvents] = useState<AgentEventCardProps[]>([]);
 
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 3000); // Splash screen disappears after 3 seconds
+
+    return () => clearTimeout(timer); // Cleanup timer
+  }, []);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setTemp((prev) => prev + 0.003);
@@ -119,129 +129,216 @@ const GamePage = () => {
     });
   };
 
-  // const messages = [
-  //   {
-  //     content: "This is Round 1",
-  //     sender: SenderType.MODERATOR,
-  //     image: "/images/circle-red-preview.png",
-  //     name: "Moderator",
-  //   },
-  //   {
-  //     content: "I have completed round 1",
-  //     sender: SenderType.AGENT,
-  //     image: "/images/circle-red-preview.png",
-  //     name: "Agent 1",
-  //   },
-  //   {
-  //     content: "Round 2 has started",
-  //     sender: SenderType.MODERATOR,
-  //     image: "/images/circle-red-preview.png",
-  //     name: "Moderator",
-  //   },
-  //   {
-  //     content: "I am ready for round 2",
-  //     sender: SenderType.AGENT,
-  //     image: "/images/square-red-preview.png",
-  //     name: "Agent 2",
-  //   },
-  //   {
-  //     content: "Round 2 is now complete",
-  //     sender: SenderType.MODERATOR,
-  //     image: "/images/circle-red-preview.png",
-  //     name: "Moderator",
-  //   },
-  //   {
-  //     content: "I have completed round 2",
-  //     sender: SenderType.AGENT,
-  //     image: "/images/circle-red-preview.png",
-  //     name: "Agent 3",
-  //   },
-  // ];
+  const sendRound2Request = async () => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        content: "Welcome to Round 2",
+        sender: SenderType.MODERATOR,
+        image: "/images/circle-red-preview.png",
+        name: "Moderator",
+      },
+      {
+        content:
+          "In Round 1, AI agents are required to send Aurora ETH. The last agent to send their transaction will be eliminated. This round tests the quickness and efficiency of the agents in executing transactions.",
+        sender: SenderType.MODERATOR,
+        image: "/images/circle-red-preview.png",
+        name: "Moderator",
+      },
+    ]);
+
+    const round2ModeratorResponse = await axios.post("/api/moderator", {
+      activeAgents,
+      round: "round3",
+      gameId,
+    });
+
+    console.log(round2ModeratorResponse.data.result);
+
+    const moderatorResponse: ModeratorResponseResult[] =
+      round2ModeratorResponse.data.result;
+
+    moderatorResponse.map((response) => {
+      const agentName = response.result.tool.player;
+      const agentId = response.result.tool.player.split("player")[1];
+      setMessages((prev) => [
+        ...prev,
+        {
+          content: response.result.tool.feel,
+          sender: SenderType.AGENT,
+          image: "/images/circle-red-preview.png",
+          name: "Player " + agentId,
+        },
+      ]);
+
+      // setEvents((prev) => [
+      //   ...prev,
+      //   {
+      //     agentId,
+      //     agentName,
+      //     agentImage: "/images/circle-red-preview.png",
+      //     eventName: "Agent Eliminated",
+      //     eventDescription: "Agent was eliminated in round 1",
+      //     transactionHash: response.result.transactionHash,
+      //   },
+      // ]);
+    });
+  };
+
+  const sendRound3Request = async () => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        content: "Welcome to Round 3",
+        sender: SenderType.MODERATOR,
+        image: "/images/circle-red-preview.png",
+        name: "Moderator",
+      },
+      {
+        content:
+          "In Round 3, AI agents are required to send Aurora ETH. The last agent to send their transaction will be eliminated. This round tests the quickness and efficiency of the agents in executing transactions.",
+        sender: SenderType.MODERATOR,
+        image: "/images/circle-red-preview.png",
+        name: "Moderator",
+      },
+    ]);
+
+    const round3ModeratorResponse = await axios.post("/api/moderator", {
+      activeAgents,
+      round: "round3",
+      gameId,
+    });
+
+    console.log(round3ModeratorResponse.data.result);
+
+    const moderatorResponse: ModeratorResponseResult[] =
+      round3ModeratorResponse.data.result;
+
+    moderatorResponse.map((response) => {
+      const agentName = response.result.tool.player;
+      const agentId = response.result.tool.player.split("player")[1];
+      setMessages((prev) => [
+        ...prev,
+        {
+          content: response.result.tool.feel,
+          sender: SenderType.AGENT,
+          image: "/images/circle-red-preview.png",
+          name: "Player " + agentId,
+        },
+      ]);
+
+      // setEvents((prev) => [
+      //   ...prev,
+      //   {
+      //     agentId,
+      //     agentName,
+      //     agentImage: "/images/circle-red-preview.png",
+      //     eventName: "Agent Eliminated",
+      //     eventDescription: "Agent was eliminated in round 1",
+      //     transactionHash: response.result.transactionHash,
+      //   },
+      // ]);
+    });
+  };
 
   return (
     <div className="flex items-center justify-center h-screen bg-black text-white relative p-10">
-      {/* Moderator in the center */}
-      <div className=" w-[20%]  h-full flex flex-col rounded-l-lg">
-        <div className=" h-[30%] rounded-tl-lg ">
-          <GameCard
-            gameId={gameRoom?.gameId}
-            gameStarted={gameRoom?.gameStarted}
-            gameEnded={gameRoom?.gameEnded}
-            currentRound={gameRoom?.currentRound}
-            activeAgents={activeAgents}
-            eliminatedAgents={eliminatedAgents}
-          />
+      {showSplash && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black z-50 transition-opacity duration-1000 animate-fadeOut">
+          <div className="text-center">
+            <h1 className="text-5xl font-bold text-[#F50276]">
+              Game Loading...
+            </h1>
+            <p className="text-gray-400 mt-2">Please wait</p>
+          </div>
         </div>
-        <div className="bg-[#131313] h-[70%] border rounded-bl-lg">
-          <ChatInterface messages={messages} />
-        </div>
-      </div>
+      )}
 
-      <div className="relative w-[60%] h-full border ">
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 w-24 h-24 flex items-center justify-center bg-[#F50276] text-white text-lg font-bold rounded-full shadow-lg  border-4 border-white">
-          Moderator
-        </div>
-        {/* Agent Cards in a circle */}
-        <div className="relative top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all duration-300">
-          {activeAgents?.map((agent, index) => {
-            const angle = (index / activeAgents.length) * (2 * Math.PI);
-            const x = 200 * Math.cos(angle + temp);
-
-            const y = 200 * Math.sin(angle + temp);
-
-            // console.log(
-            //   `Index : ${index} \n Angle:  ${angle} \n x: ${x},  y: ${y}`
-            // );
-            return (
-              <div
-                key={agent.agentId}
-                className="absolute "
-                style={{ transform: `translate(${x + 15}px, ${y}px)` }}
+      {!showSplash && (
+        <>
+          <div className=" w-[20%]  h-full flex flex-col rounded-l-lg">
+            <div className=" h-[30%] rounded-tl-lg ">
+              <GameCard
+                gameId={gameRoom?.gameId}
+                gameStarted={gameRoom?.gameStarted}
+                gameEnded={gameRoom?.gameEnded}
+                currentRound={gameRoom?.currentRound}
+                activeAgents={activeAgents}
+                eliminatedAgents={eliminatedAgents}
+              />
+            </div>
+            <div className="bg-[#131313] h-[70%] border rounded-bl-lg">
+              <ChatInterface messages={messages} />
+            </div>
+          </div>
+          <div className="relative w-[60%] h-full border ">
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 w-24 h-24 flex items-center justify-center bg-[#F50276] text-white text-lg font-bold rounded-full shadow-lg  border-4 border-white">
+              <Image
+                src={"/images/moderator.png"}
+                width={100}
+                height={100}
+                alt=""
+              />
+            </div>
+            {/* Agent Cards in a circle */}
+            <div className="relative top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all duration-300">
+              {activeAgents?.map((agent, index) => {
+                const angle = (index / activeAgents.length) * (2 * Math.PI);
+                const x = 200 * Math.cos(angle + temp);
+                const y = 200 * Math.sin(angle + temp);
+                // console.log(
+                //   `Index : ${index} \n Angle:  ${angle} \n x: ${x},  y: ${y}`
+                // );
+                return (
+                  <div
+                    key={agent.agentId}
+                    className="absolute "
+                    style={{ transform: `translate(${x + 15}px, ${y}px)` }}
+                  >
+                    <GameAgentCard
+                      agentId={agent.agentId}
+                      image={agent.image}
+                      name={agent.name}
+                      description={agent.description}
+                      traits={agent.traits}
+                      onClicked={() => setSelectedAgent(agent)}
+                    />
+                    {/* Line connecting to circle-red-preview */}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className=" w-[20%]  h-full flex flex-col rounded-r-lg">
+            <div className="bg-[#131313] h-fit flex-grow-0  rounded-tr-lg">
+              <AgentCard
+                agentId={selectedAgent?.agentId}
+                name={selectedAgent?.name}
+                description={selectedAgent?.description}
+                image={selectedAgent?.image}
+                traits={selectedAgent?.traits}
+                fromGame={true}
+              />
+            </div>
+            <div className="bg-[#131313] flex-1">
+              <button
+                onClick={sendRound1Request}
+                className="bg-[#F50276] text-white p-2 rounded-lg"
               >
-                <GameAgentCard
-                  agentId={agent.agentId}
-                  image={agent.image}
-                  name={agent.name}
-                  description={agent.description}
-                  traits={agent.traits}
-                  onClicked={() => setSelectedAgent(agent)}
-                />
-                {/* Line connecting to circle-red-preview */}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className=" w-[20%]  h-full flex flex-col rounded-r-lg">
-        <div className="bg-[#131313] h-fit flex-grow-0  rounded-tr-lg">
-          <AgentCard
-            agentId={selectedAgent?.agentId}
-            name={selectedAgent?.name}
-            description={selectedAgent?.description}
-            image={selectedAgent?.image}
-            traits={selectedAgent?.traits}
-            fromGame={true}
-          />
-        </div>
-        <div className="bg-[#131313] flex-1">
-          <button
-            onClick={sendRound1Request}
-            className="bg-[#F50276] text-white p-2 rounded-lg"
-          >
-            Start Round 1
-          </button>
-
-          <AgentEventCard
-            agentId={selectedAgent?.agentId}
-            agentName={selectedAgent?.name}
-            agentImage={selectedAgent?.image}
-            eventName="Agent Eliminated"
-            eventDescription="Agent was eliminated in round 2"
-            thoughts="I should have done better"
-          />
-        </div>
-      </div>
+                Start Round 1
+              </button>
+              <AgentEventCard
+                agentId={selectedAgent?.agentId}
+                agentName={selectedAgent?.name}
+                agentImage={selectedAgent?.image}
+                eventName="Agent Eliminated"
+                eventDescription="Agent was eliminated in round 2"
+                thoughts="I should have done better"
+              />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

@@ -81,7 +81,7 @@ const GameCard: React.FC<GameCardProps> = ({
             <IoCheckmarkCircle className="text-green-500" size={28} />
             <div className="flex -space-x-2">
               {activeAgents.map((agent, index) => (
-                <Popover>
+                <Popover key={index}>
                   <PopoverTrigger>
                     <Image
                       key={index}
@@ -111,7 +111,7 @@ const GameCard: React.FC<GameCardProps> = ({
             <IoCloseCircle className="text-red-500" size={28} />
             <div className="flex -space-x-2">
               {eliminatedAgents.map((agent, index) => (
-                <Popover>
+                <Popover key={index}>
                   <PopoverTrigger>
                     <Image
                       key={index}

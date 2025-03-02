@@ -33,6 +33,7 @@ const museo = MuseoModerno({
 
 const Home = () => {
   const [agents, setAgents] = React.useState<AgentCardProps[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const { data: hash, error, isPending, writeContract } = useWriteContract();
   const [gameId, setGameId] = React.useState<string | undefined>(undefined);
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
@@ -48,6 +49,7 @@ const Home = () => {
   }, [isConfirmed]);
 
   const handleCreateGame = async () => {
+    setLoading(true);
     try {
       const gameId = uuidv4();
       setGameId(gameId);
@@ -63,6 +65,7 @@ const Home = () => {
       });
     } catch (error) {
       console.error("Error creating game", error);
+      setLoading(false);
     }
   };
 
