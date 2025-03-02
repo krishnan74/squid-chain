@@ -5,12 +5,19 @@ import Image from "next/image";
 import { agentData } from "@/lib/utils";
 import { MuseoModerno } from "next/font/google";
 import { GameAgentCard } from "@/components/GameAgentCard";
-import { AgentCardProps, SenderType } from "@/lib/interface";
+import {
+  AgentCardProps,
+  AgentEventCardProps,
+  ModeratorResponseResult,
+  SenderType,
+} from "@/lib/interface";
 import GameCard from "@/components/GameCard";
 import ChatInterface from "@/components/ChatInterface";
 import { usePathname } from "next/navigation";
 import { wagmiContractConfig } from "@/lib/contract";
 import { useReadContract } from "wagmi";
+import AgentEventCard from "@/components/AgentEventCard";
+import axios from "axios";
 
 const museo = MuseoModerno({
   subsets: ["latin"],
@@ -24,6 +31,12 @@ const GamePage = () => {
   const [selectedAgent, setSelectedAgent] = useState<
     AgentCardProps | undefined
   >(undefined);
+
+  const [messages, setMessages] = useState<
+    { content: string; sender: SenderType; image: string; name: string }[]
+  >([]);
+
+  const [events, setEvents] = useState<AgentEventCardProps[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -50,44 +63,100 @@ const GamePage = () => {
     args: [gameId || ""],
   });
 
-  const messages = [
-    {
-      content: "This is Round 1",
-      sender: SenderType.MODERATOR,
-      image: "/images/moderator.png",
-      name: "Moderator",
-    },
-    {
-      content: "I have completed round 1",
-      sender: SenderType.AGENT,
-      image: "/images/circle-red-preview.png",
-      name: "Agent 1",
-    },
-    {
-      content: "Round 2 has started",
-      sender: SenderType.MODERATOR,
-      image: "/images/moderator.png",
-      name: "Moderator",
-    },
-    {
-      content: "I am ready for round 2",
-      sender: SenderType.AGENT,
-      image: "/images/square-red-preview.png",
-      name: "Agent 2",
-    },
-    {
-      content: "Round 2 is now complete",
-      sender: SenderType.MODERATOR,
-      image: "/images/moderator.png",
-      name: "Moderator",
-    },
-    {
-      content: "I have completed round 2",
-      sender: SenderType.AGENT,
-      image: "/images/circle-red-preview.png",
-      name: "Agent 3",
-    },
-  ];
+  const sendRound1Request = async () => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        content: "Welcome to Round 1",
+        sender: SenderType.MODERATOR,
+        image: "/images/circle-red-preview.png",
+        name: "Moderator",
+      },
+      {
+        content:
+          "In Round 1, AI agents are required to send Aurora ETH. The last agent to send their transaction will be eliminated. This round tests the quickness and efficiency of the agents in executing transactions.",
+        sender: SenderType.MODERATOR,
+        image: "/images/circle-red-preview.png",
+        name: "Agent 1",
+      },
+    ]);
+
+    const round1ModeratorResponse = await axios.post("/api/moderator", {
+      activeAgents,
+      round: "round1",
+      gameId,
+    });
+
+    console.log(round1ModeratorResponse.data.result);
+
+    const moderatorResponse: ModeratorResponseResult[] =
+      round1ModeratorResponse.data.result;
+
+    moderatorResponse.map((response) => {
+      const agentName = response.result.tool.player;
+      const agentId = response.result.tool.player.split("player")[1];
+      setMessages((prev) => [
+        ...prev,
+        {
+          content: response.result.tool.feel,
+          sender: SenderType.AGENT,
+          image: "/images/circle-red-preview.png",
+          name: "Player " + agentId,
+        },
+      ]);
+
+      // setEvents((prev) => [
+      //   ...prev,
+      //   {
+      //     agentId,
+      //     agentName,
+      //     agentImage: "/images/circle-red-preview.png",
+      //     eventName: "Agent Eliminated",
+      //     eventDescription: "Agent was eliminated in round 1",
+      //     transactionHash: response.result.transactionHash,
+      //   },
+      // ]);
+    });
+  };
+
+  // const messages = [
+  //   {
+  //     content: "This is Round 1",
+  //     sender: SenderType.MODERATOR,
+  //     image: "/images/circle-red-preview.png",
+  //     name: "Moderator",
+  //   },
+  //   {
+  //     content: "I have completed round 1",
+  //     sender: SenderType.AGENT,
+  //     image: "/images/circle-red-preview.png",
+  //     name: "Agent 1",
+  //   },
+  //   {
+  //     content: "Round 2 has started",
+  //     sender: SenderType.MODERATOR,
+  //     image: "/images/circle-red-preview.png",
+  //     name: "Moderator",
+  //   },
+  //   {
+  //     content: "I am ready for round 2",
+  //     sender: SenderType.AGENT,
+  //     image: "/images/square-red-preview.png",
+  //     name: "Agent 2",
+  //   },
+  //   {
+  //     content: "Round 2 is now complete",
+  //     sender: SenderType.MODERATOR,
+  //     image: "/images/circle-red-preview.png",
+  //     name: "Moderator",
+  //   },
+  //   {
+  //     content: "I have completed round 2",
+  //     sender: SenderType.AGENT,
+  //     image: "/images/circle-red-preview.png",
+  //     name: "Agent 3",
+  //   },
+  // ];
 
   return (
     <div className="flex items-center justify-center h-screen bg-black text-white relative p-10">
@@ -137,7 +206,7 @@ const GamePage = () => {
                   traits={agent.traits}
                   onClicked={() => setSelectedAgent(agent)}
                 />
-                {/* Line connecting to moderator */}
+                {/* Line connecting to circle-red-preview */}
               </div>
             );
           })}
@@ -155,7 +224,23 @@ const GamePage = () => {
             fromGame={true}
           />
         </div>
-        <div className="bg-[#131313] flex-1">p</div>
+        <div className="bg-[#131313] flex-1">
+          <button
+            onClick={sendRound1Request}
+            className="bg-[#F50276] text-white p-2 rounded-lg"
+          >
+            Start Round 1
+          </button>
+
+          <AgentEventCard
+            agentId={selectedAgent?.agentId}
+            agentName={selectedAgent?.name}
+            agentImage={selectedAgent?.image}
+            eventName="Agent Eliminated"
+            eventDescription="Agent was eliminated in round 2"
+            thoughts="I should have done better"
+          />
+        </div>
       </div>
     </div>
   );

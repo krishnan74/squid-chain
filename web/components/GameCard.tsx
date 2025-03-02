@@ -4,6 +4,8 @@ import { Skeleton } from "./ui/skeleton";
 import { IoCloseCircle, IoCheckmarkCircle } from "react-icons/io5";
 import Image from "next/image";
 import { MuseoModerno } from "next/font/google";
+import { useRouter } from "next/navigation";
+
 import {
   Popover,
   PopoverContent,
@@ -23,7 +25,9 @@ const GameCard: React.FC<GameCardProps> = ({
   currentRound,
   activeAgents,
   eliminatedAgents,
+  fromExplore,
 }) => {
+  const router = useRouter();
   if (
     gameId === undefined ||
     gameStarted === undefined ||
@@ -33,7 +37,11 @@ const GameCard: React.FC<GameCardProps> = ({
     eliminatedAgents === undefined
   )
     return (
-      <div className="w-full rounded-tl-lg h-full flex flex-col justify-between p-6 bg-[#FCF5E8] shadow-lg hover:shadow-2xl transition-all">
+      <div
+        className={`w-full ${
+          fromExplore ? "rounded-lg  " : "rounded-tl-lg "
+        } h-full flex flex-col justify-between p-6 bg-[#FCF5E8] shadow-lg hover:shadow-2xl transition-all`}
+      >
         <Skeleton className="h-6 w-[50%] mb-4" />
         <Skeleton className="h-4 w-full mb-2" />
         <Skeleton className="h-4 w-[90%] mb-2" />
@@ -50,9 +58,18 @@ const GameCard: React.FC<GameCardProps> = ({
     );
 
   return (
-    <div className="w-full rounded-tl-lg flex-shrink-0 flex flex-col justify-between p-6 bg-[#FCF5E8] shadow-lg hover:shadow-2xl transition-all ">
-      <p className="text-2xl  mb-2 text-[#F50276] ">Game Room</p>
-      <div className={`text-[#010B09] ${museo.className} text-sm`}>
+    <div
+      onClick={() => {
+        if (fromExplore) {
+          router.push(`/game/${gameId}`);
+        }
+      }}
+      className={`w-full ${
+        fromExplore ? "rounded-lg cursor-pointer" : "rounded-tl-lg "
+      } flex-shrink-0 flex flex-col justify-between p-6 bg-[#FCF5E8] shadow-lg hover:shadow-2xl transition-all `}
+    >
+      <p className="text-2xl  mb-2 text-[#000] ">Game Room</p>
+      <div className={`text-[#F50276] ${museo.className} text-sm`}>
         <p className="mb-2 font-medium">
           Game ID: <span className="font-semibold">{gameId}</span>
         </p>
