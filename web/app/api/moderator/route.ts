@@ -9,6 +9,8 @@ import type { ChatCompletionAssistantMessageParam } from "openai/resources";
 import { runToolCalls } from "./base";
 import axios from "axios";
 import { AgentCardProps } from "@/lib/interface";
+import { ethers } from "ethers";
+import { abi } from "../abi";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -18,6 +20,27 @@ export async function POST(req: NextRequest) {
   const playerIds = activeAgents.map((agent: AgentCardProps) => agent.agentId);
 
   const order: string[] = [];
+
+  const eliminatePlayer = async (playerId: number, gameId: number) => {
+    try {
+        const provider = new ethers.JsonRpcProvider("https://testnet.aurora.dev");
+        const wallet = new ethers.Wallet(process.env.agentprivatekey!, provider);
+
+        const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS!, abi, wallet);
+
+        const tx = await contract.eliminatePlayer(playerId, gameId);
+        await tx.wait();
+
+        console.log(`Player ${playerId} eliminated from Game ${gameId}. TxHash: ${tx.hash}`);
+        return tx.hash;
+    } catch (error) {
+        console.error("Error eliminating player:", error);
+        throw error;
+    }
+};
+
+
+
 
   const round1Tool = createTool({
     id: "round1-tool",
@@ -46,6 +69,8 @@ export async function POST(req: NextRequest) {
         order.push(`player${playerId}`);
 
         data.aboutround = _args.aboutround;
+        data.eventname="send aurora eth to the wallet address";
+        data.eventdesc="sent 0.001 aurora eth to the wallet address";
         response.push(data);
       });
       await Promise.all(requests);
@@ -83,7 +108,8 @@ export async function POST(req: NextRequest) {
         order.push(`player${playerId}`);
 
         data.aboutround = _args.aboutround;
-
+        data.eventname="Form alliances with other players";
+        data.eventdesc="alliance formed with other players";
         data.winner = `the players who chose ${safeno} are safe and are advanced to the next and final round and the rest are eliminated`;
         response.push(data);
       });
@@ -120,6 +146,8 @@ export async function POST(req: NextRequest) {
         order.push(`player${playerId}`);
 
         data.aboutround = _args.aboutround;
+        data.eventname="Interact with the smart contract";
+        data.eventdesc="Interacted with the smart contract";
         data.winner = `the winner is Player${playerId} and wins 45.6 billion Korean won`;
         response.push(data);
       });
