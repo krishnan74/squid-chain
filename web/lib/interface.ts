@@ -16,6 +16,9 @@ export interface AgentCardProps {
 export interface ModeratorResponseResult {
   message: string;
   aboutround: string;
+  winner: string;
+  eventName: string;
+  eventDescription: string;
   result: {
     message: string;
     tool: {
@@ -28,12 +31,17 @@ export interface ModeratorResponseResult {
 }
 
 export interface AgentEventCardProps {
-  agentId: number | undefined;
-  agentName: string | undefined;
-  agentImage: string | undefined;
-  eventName: string | undefined;
-  eventDescription: string | undefined;
-  thoughts: string | undefined;
+  events: {
+    agentId: number | undefined;
+    agentName: string | undefined;
+    agentImage: string | undefined;
+    eventName: string | undefined;
+    eventDescription: string | undefined;
+    transactionHash?: string;
+    thoughts: string | undefined;
+  }[];
+
+  selectedAgentId: number | undefined;
 }
 
 export interface GameCardProps {

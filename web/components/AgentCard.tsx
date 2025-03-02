@@ -3,6 +3,7 @@ import Image from "next/image";
 import { MuseoModerno } from "next/font/google";
 import { AgentCardProps } from "@/lib/interface";
 import { Skeleton } from "./ui/skeleton";
+import { IoClose } from "react-icons/io5";
 
 const museo = MuseoModerno({
   subsets: ["latin"],
@@ -16,6 +17,7 @@ const AgentCard: React.FC<AgentCardProps> = ({
   traits,
   fromGame,
   onDragStart,
+  onClicked,
   status,
 }) => {
   const [borderColor, setBorderColor] = React.useState<string>("#06BA99");
@@ -63,7 +65,7 @@ const AgentCard: React.FC<AgentCardProps> = ({
       }}
       className={`flex flex-col flex-shrink-0 ${
         fromGame
-          ? " w-full bg-[#FCF5E8] text-[#F50276] rounded-tr-lg "
+          ? "relative w-full bg-[#FCF5E8] text-[#F50276] rounded-tr-lg "
           : "w-[250px] bg-[#131313] border border-[#F50276] hover:bg-[#FCF5E8] hover:text-[#F50276] rounded-lg"
       } h-full justify-between items-start transition-all duration-300 p-5    `}
       draggable={true}
@@ -71,6 +73,14 @@ const AgentCard: React.FC<AgentCardProps> = ({
         onDragStart && onDragStart(e, { name, description, image })
       }
     >
+      {fromGame && (
+        <IoClose
+          className="absolute top-3 p-1 right-3 hover:bg-[#ffeac3] rounded-full text-[#000] hover:text-[#000] cursor-pointer"
+          size={25}
+          onClick={onClicked}
+        />
+      )}
+
       {status != undefined ? (
         status === "active" ? (
           <p className="text-black text-xl ">Active Agent</p>

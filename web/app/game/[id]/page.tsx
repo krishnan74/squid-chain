@@ -36,7 +36,17 @@ const GamePage = () => {
     { content: string; sender: SenderType; image: string; name: string }[]
   >([]);
 
-  const [events, setEvents] = useState<AgentEventCardProps[]>([]);
+  const [events, setEvents] = useState<
+    {
+      agentId: number;
+      agentName: string;
+      agentImage: string;
+      eventName: string;
+      eventDescription: string;
+      thoughts: string;
+      transactionHash?: string;
+    }[]
+  >([]);
 
   const [showSplash, setShowSplash] = useState(true);
 
@@ -87,7 +97,7 @@ const GamePage = () => {
           "In Round 1, AI agents are required to send Aurora ETH. The last agent to send their transaction will be eliminated. This round tests the quickness and efficiency of the agents in executing transactions.",
         sender: SenderType.MODERATOR,
         image: "/images/circle-red-preview.png",
-        name: "Agent 1",
+        name: "Moderator",
       },
     ]);
 
@@ -115,17 +125,18 @@ const GamePage = () => {
         },
       ]);
 
-      // setEvents((prev) => [
-      //   ...prev,
-      //   {
-      //     agentId,
-      //     agentName,
-      //     agentImage: "/images/circle-red-preview.png",
-      //     eventName: "Agent Eliminated",
-      //     eventDescription: "Agent was eliminated in round 1",
-      //     transactionHash: response.result.transactionHash,
-      //   },
-      // ]);
+      setEvents((prev) => [
+        ...prev,
+        {
+          agentId: Number(agentId),
+          agentName: response.result.tool.player,
+          agentImage: "/images/circle-red-preview.png",
+          eventName: response.eventName,
+          eventDescription: response.eventDescription,
+          thoughts: response.result.tool.feel,
+          transactionHash: response.result.tool.transactionHash,
+        },
+      ]);
     });
   };
 
@@ -140,7 +151,7 @@ const GamePage = () => {
       },
       {
         content:
-          "In Round 1, AI agents are required to send Aurora ETH. The last agent to send their transaction will be eliminated. This round tests the quickness and efficiency of the agents in executing transactions.",
+          "In Round 2, AI agents are required to send Aurora ETH. The last agent to send their transaction will be eliminated. This round tests the quickness and efficiency of the agents in executing transactions.",
         sender: SenderType.MODERATOR,
         image: "/images/circle-red-preview.png",
         name: "Moderator",
@@ -149,7 +160,7 @@ const GamePage = () => {
 
     const round2ModeratorResponse = await axios.post("/api/moderator", {
       activeAgents,
-      round: "round3",
+      round: "round2",
       gameId,
     });
 
@@ -171,18 +182,28 @@ const GamePage = () => {
         },
       ]);
 
-      // setEvents((prev) => [
-      //   ...prev,
-      //   {
-      //     agentId,
-      //     agentName,
-      //     agentImage: "/images/circle-red-preview.png",
-      //     eventName: "Agent Eliminated",
-      //     eventDescription: "Agent was eliminated in round 1",
-      //     transactionHash: response.result.transactionHash,
-      //   },
-      // ]);
+      setEvents((prev) => [
+        ...prev,
+        {
+          agentId: Number(agentId),
+          agentName: response.result.tool.player,
+          agentImage: "/images/circle-red-preview.png",
+          eventName: response.eventName,
+          eventDescription: response.eventDescription,
+          thoughts: response.result.tool.feel,
+        },
+      ]);
     });
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        content: moderatorResponse[0].winner,
+        sender: SenderType.MODERATOR,
+        image: "/images/circle-red-preview.png",
+        name: "Moderator",
+      },
+    ]);
   };
 
   const sendRound3Request = async () => {
@@ -227,18 +248,29 @@ const GamePage = () => {
         },
       ]);
 
-      // setEvents((prev) => [
-      //   ...prev,
-      //   {
-      //     agentId,
-      //     agentName,
-      //     agentImage: "/images/circle-red-preview.png",
-      //     eventName: "Agent Eliminated",
-      //     eventDescription: "Agent was eliminated in round 1",
-      //     transactionHash: response.result.transactionHash,
-      //   },
-      // ]);
+      setEvents((prev) => [
+        ...prev,
+        {
+          agentId: Number(agentId),
+          agentName: response.result.tool.player,
+          agentImage: "/images/circle-red-preview.png",
+          eventName: response.eventName,
+          eventDescription: response.eventDescription,
+          thoughts: response.result.tool.feel,
+          transactionHash: response.result.tool.transactionHash,
+        },
+      ]);
     });
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        content: moderatorResponse[0].winner,
+        sender: SenderType.MODERATOR,
+        image: "/images/circle-red-preview.png",
+        name: "Moderator",
+      },
+    ]);
   };
 
   return (
@@ -272,6 +304,26 @@ const GamePage = () => {
             </div>
           </div>
           <div className="relative w-[60%] h-full border ">
+            <button
+              onClick={sendRound1Request}
+              className="bg-[#F50276] text-white p-2 rounded-lg"
+            >
+              Start Round 1
+            </button>
+
+            <button
+              onClick={sendRound2Request}
+              className="bg-[#F50276] text-white p-2 rounded-lg"
+            >
+              Start Round 2
+            </button>
+
+            <button
+              onClick={sendRound3Request}
+              className="bg-[#F50276] text-white p-2 rounded-lg"
+            >
+              Start Round 3
+            </button>
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 w-24 h-24 flex items-center justify-center bg-[#F50276] text-white text-lg font-bold rounded-full shadow-lg  border-4 border-white">
               <Image
                 src={"/images/moderator.png"}
@@ -310,7 +362,7 @@ const GamePage = () => {
             </div>
           </div>
           <div className=" w-[20%]  h-full flex flex-col rounded-r-lg">
-            <div className="bg-[#131313] h-fit flex-grow-0  rounded-tr-lg">
+            <div className=" bg-[#131313] h-[35%] flex-grow-0  rounded-tr-lg">
               <AgentCard
                 agentId={selectedAgent?.agentId}
                 name={selectedAgent?.name}
@@ -318,22 +370,13 @@ const GamePage = () => {
                 image={selectedAgent?.image}
                 traits={selectedAgent?.traits}
                 fromGame={true}
+                onClicked={() => setSelectedAgent(undefined)}
               />
             </div>
-            <div className="bg-[#131313] flex-1">
-              <button
-                onClick={sendRound1Request}
-                className="bg-[#F50276] text-white p-2 rounded-lg"
-              >
-                Start Round 1
-              </button>
+            <div className="bg-[#131313] h-[65%] border rounded-br-lg">
               <AgentEventCard
-                agentId={selectedAgent?.agentId}
-                agentName={selectedAgent?.name}
-                agentImage={selectedAgent?.image}
-                eventName="Agent Eliminated"
-                eventDescription="Agent was eliminated in round 2"
-                thoughts="I should have done better"
+                events={events}
+                selectedAgentId={selectedAgent?.agentId}
               />
             </div>
           </div>

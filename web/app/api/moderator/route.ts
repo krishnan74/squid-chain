@@ -77,8 +77,8 @@ export async function POST(req: NextRequest) {
         order.push(playerId);
 
         data.aboutround = _args.aboutround;
-        data.eventname = "send aurora eth to the wallet address";
-        data.eventdesc = "sent 0.001 aurora eth to the wallet address";
+        data.eventName = "send aurora eth to the wallet address";
+        data.eventDescription = "sent 0.001 aurora eth to the wallet address";
         response.push(data);
       });
       await Promise.all(requests);
@@ -113,6 +113,8 @@ export async function POST(req: NextRequest) {
 
       const safeno = Math.floor(Math.random() * 2);
 
+      console.log("Safe number is", safeno);
+
       const requests = playerIds.map(async (playerId: number) => {
         const { data } = await axios.get(
           `http://localhost:3000/api/player${playerId}`,
@@ -120,16 +122,28 @@ export async function POST(req: NextRequest) {
             params: { message },
           }
         );
-        order.push(`player${playerId}`);
+
+        const choice = data.result.tool.choice;
+
+        console.log(choice);
+
+        if (choice != safeno) {
+          console.log("Choice of player", playerId, "is", choice);
+
+          order.push(playerId);
+
+          await eliminatePlayer(playerId, gameId);
+        }
 
         data.aboutround = _args.aboutround;
-        data.eventname = "Form alliances with other players";
-        data.eventdesc = "alliance formed with other players";
+        data.eventName = "Form alliances with other players";
+        data.eventDescription = "alliance formed with other players";
         data.winner = `the players who chose ${safeno} are safe and are advanced to the next and final round and the rest are eliminated`;
         response.push(data);
       });
       await Promise.all(requests);
-      console.log(order);
+
+      console.log("Eliminating agents ids", order);
       return response;
     },
   });
@@ -157,17 +171,25 @@ export async function POST(req: NextRequest) {
             params: { message },
           }
         );
-        order.push(`player${playerId}`);
+        order.push(playerId);
 
         data.aboutround = _args.aboutround;
-        data.eventname = "Interact with the smart contract";
-        data.eventdesc = "Interacted with the smart contract";
+        data.eventName = "Interact with the smart contract";
+        data.eventDescription = "Interacted with the smart contract";
         data.winner = `the winner is Player${playerId} and wins 45.6 billion Korean won`;
         response.push(data);
       });
       await Promise.all(requests);
+
+      for (let i = 0; i < order.length; i++) {
+        if (i != 0) {
+          console.log("Eliminating player", order[i]);
+          await eliminatePlayer(order[i], gameId);
+        }
+      }
+
       console.log(order);
-      return response[0];
+      return response;
     },
   });
 
