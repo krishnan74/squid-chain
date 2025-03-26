@@ -4,7 +4,7 @@ import z from "zod";
 import { user } from "@covalenthq/ai-agent-sdk/dist/core/base";
 import "dotenv/config";
 import { StateFn } from "@covalenthq/ai-agent-sdk/dist/core/state";
-//@ts-expect-error Type exists in the openai package
+
 import type { ChatCompletionAssistantMessageParam } from "openai/resources";
 import { runToolCalls } from "./base";
 import { ethers } from "ethers";
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
       feel: z.string().describe("how they feel"),
     }),
     execute: async ({ to, amount, feel }) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment4
+      
       const provider = new ethers.JsonRpcProvider("https://testnet.aurora.dev");
       const wallet = new ethers.Wallet(process.env.agent1privatekey!, provider);
 
@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
       feel: z.string().describe("how they feel"),
     }),
     execute: async (_args) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment4
+      
       console.log("Round 3");
       const provider = new ethers.JsonRpcProvider("https://rpc-0x4e454175.aurora-cloud.dev/");
       const wallet = new ethers.Wallet(process.env.agent1privatekey!, provider);

@@ -4,7 +4,7 @@ import z from "zod";
 import { user } from "@covalenthq/ai-agent-sdk/dist/core/base";
 import "dotenv/config";
 import { StateFn } from "@covalenthq/ai-agent-sdk/dist/core/state";
-//@ts-expect-error Type exists in the openai package
+
 import type { ChatCompletionAssistantMessageParam } from "openai/resources";
 import { runToolCalls } from "./base";
 import { wagmiContractConfig } from "@/lib/contract";
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       // amount: z.string().describe("amount in ETH to send"),
       aboutround: z.string().describe("about the round"),
     }),
-    execute: async (_args) => {
+    execute: async (_args: { aboutround: string }) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //return {amount:_args.amount, address:_args.to};
       const response: any = [];
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
       // amount: z.string().describe("amount in ETH to send"),
       aboutround: z.string().describe("about the round"),
     }),
-    execute: async (_args) => {
+    execute: async (_args: { aboutround: string }) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //return {amount:_args.amount, address:_args.to};
       const response: any = [];
@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
     schema: z.object({
       aboutround: z.string().describe("about the round"),
     }),
-    execute: async (_args) => {
+    execute: async (_args: { aboutround: string }) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //return {amount:_args.amount, address:_args.to};
       const response: any = [];
